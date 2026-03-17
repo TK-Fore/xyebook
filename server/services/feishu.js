@@ -162,8 +162,10 @@ async function getNovelsFromFeishu() {
     });
 
     if (response.data && response.data.items) {
-      return response.data.items.map(record => ({
-        id: record.fields['文本'] || record.record_id,
+      return response.data.items
+        .filter(record => record.fields && record.fields['书名']) // 过滤空记录
+        .map(record => ({
+        id: record.record_id,
         title: record.fields['书名'] || '',
         author: record.fields['作者'] || '',
         cover: record.fields['附件'] || '',
@@ -252,6 +254,9 @@ async function getChapterContentFromFeishu(chapterId) {
 
 // 获取小说列表
 async function getNovels(params = {}) {
+  console.log('[Feishu] isFeishuConfigured:', isFeishuConfigured());
+  console.log('[Feishu] ENV:', { APP_ID: !!process.env.FEISHU_APP_ID, NOVELS_TOKEN: !!process.env.FEISHU_NOVELS_TOKEN });
+  
   // 优先尝试从飞书获取数据
   if (isFeishuConfigured()) {
     try {
