@@ -1,11 +1,15 @@
 // 小说路由
 const express = require('express');
 const router = express.Router();
-const { getNovels, getNovelDetail, getChapters, getChapterContent, isFeishuConfigured } = require('../services/feishu');
+const { getNovels, getNovelDetail, getChapters, getChapterContent, isFeishuConfigured } = require('../services/data');
+const { isSupabaseConfigured } = require('../services/supabase');
 
 // 调试端点 - 检查环境变量
 router.get('/debug', async (req, res) => {
   res.json({
+    SUPABASE_URL: !!process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
+    isSupabaseConfigured: isSupabaseConfigured(),
     FEISHU_APP_ID: !!process.env.FEISHU_APP_ID,
     FEISHU_APP_SECRET: !!process.env.FEISHU_APP_SECRET,
     FEISHU_NOVELS_TOKEN: !!process.env.FEISHU_NOVELS_TOKEN,
@@ -47,16 +51,6 @@ router.get('/:id/chapters', async (req, res) => {
 });
 
 // 获取章节内容
-router.get('/chapter/:id', async (req, res) => {
-  try {
-    const result = await getChapterContent(req.params.id);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// 获取章节内容（兼容路由）
 router.get('/chapter/:id', async (req, res) => {
   try {
     const result = await getChapterContent(req.params.id);
