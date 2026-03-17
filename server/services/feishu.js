@@ -11,11 +11,11 @@ const CHAPTERS_TABLE_ID = process.env.FEISHU_CHAPTERS_TABLE_ID || 'tbllU7jO0Vs32
 
 // 初始化飞书客户端
 let client = null;
+console.log('[Feishu] Initializing with:', { APP_ID: !!APP_ID, APP_SECRET: !!APP_SECRET, NOVELS_TABLE_TOKEN: !!NOVELS_TABLE_TOKEN });
 try {
   client = new Client({
     appId: APP_ID,
     appSecret: APP_SECRET,
-    logLevel: 'debug',
   });
   console.log('飞书客户端初始化成功');
 } catch (error) {
