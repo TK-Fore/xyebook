@@ -1,7 +1,19 @@
 // 小说路由
 const express = require('express');
 const router = express.Router();
-const { getNovels, getNovelDetail, getChapters, getChapterContent } = require('../services/feishu');
+const { getNovels, getNovelDetail, getChapters, getChapterContent, isFeishuConfigured } = require('../services/feishu');
+
+// 调试端点 - 检查环境变量
+router.get('/debug', async (req, res) => {
+  res.json({
+    FEISHU_APP_ID: !!process.env.FEISHU_APP_ID,
+    FEISHU_APP_SECRET: !!process.env.FEISHU_APP_SECRET,
+    FEISHU_NOVELS_TOKEN: !!process.env.FEISHU_NOVELS_TOKEN,
+    FEISHU_CHAPTERS_TOKEN: !!process.env.FEISHU_CHAPTERS_TOKEN,
+    isFeishuConfigured: isFeishuConfigured(),
+    NODE_ENV: process.env.NODE_ENV
+  });
+});
 
 // 获取小说列表
 router.get('/', async (req, res) => {
