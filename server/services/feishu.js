@@ -254,12 +254,11 @@ async function getChapterContentFromFeishu(chapterId) {
 
 // 获取小说列表
 async function getNovels(params = {}) {
-  console.log('[Feishu] isFeishuConfigured:', isFeishuConfigured());
-  console.log('[Feishu] ENV:', { APP_ID: !!process.env.FEISHU_APP_ID, NOVELS_TOKEN: !!process.env.FEISHU_NOVELS_TOKEN });
+  // 强制尝试飞书，忽略配置检查
+  console.log('[Feishu] Force trying Feishu, ENV:', { APP_ID: !!APP_ID, NOVELS_TOKEN: !!NOVELS_TABLE_TOKEN });
   
-  // 优先尝试从飞书获取数据
-  if (isFeishuConfigured()) {
-    try {
+  try {
+    if (client && NOVELS_TABLE_TOKEN) {
       const novels = await getNovelsFromFeishu();
       let result = [...novels];
       
@@ -276,7 +275,10 @@ async function getNovels(params = {}) {
       }
       
       return { novels: result, source: 'feishu' };
-    } catch (error) {
+    } else {
+      console.warn('[Feishu] Client or Token missing, using mock');
+    }
+  } catch (error) {
       console.warn('飞书数据获取失败，使用本地数据:', error.message);
     }
   }
