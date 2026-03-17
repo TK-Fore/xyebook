@@ -12,8 +12,28 @@ export default function Reader() {
   const [fontSize, setFontSize] = useState(18);
   const [showChapters, setShowChapters] = useState(false);
 
+  // 恢复阅读偏好
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('readerDarkMode');
+    const savedFontSize = localStorage.getItem('readerFontSize');
+    if (savedDarkMode) setDarkMode(savedDarkMode === 'true');
+    if (savedFontSize) setFontSize(parseInt(savedFontSize));
+  }, []);
+
+  // 切换深色模式时保存
+  useEffect(() => {
+    localStorage.setItem('readerDarkMode', darkMode);
+  }, [darkMode]);
+
+  // 切换字体大小时保存
+  useEffect(() => {
+    localStorage.setItem('readerFontSize', fontSize.toString());
+  }, [fontSize]);
+
   useEffect(() => {
     loadChapter();
+    // 页面滚动到顶部
+    window.scrollTo(0, 0);
   }, [novelId, chapterId]);
 
   async function loadChapter() {
@@ -91,43 +111,50 @@ export default function Reader() {
   return (
     <div className={`reader-page ${darkMode ? 'dark' : ''}`}>
       <nav className="reader-nav">
-        <Link to={`/novel/${novelId}`} className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
+        <Link to={`/novel/${novelId}`} className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
           ← 返回
         </Link>
         <span className="reader-title">{chapter.title}</span>
         <div className="reader-controls">
-          <button className="control-btn" onClick={() => setShowChapters(!showChapters)}>
-            📑 目录
+          <button className="control-btn" onClick={() => setShowChapters(!showChapters)} title="目录">
+            ☰
           </button>
-          <button className="control-btn" onClick={decreaseFontSize}>
+          <button className="control-btn" onClick={decreaseFontSize} title="减小字体">
             A-
           </button>
-          <span style={{ padding: '0 0.5rem' }}>{fontSize}px</span>
-          <button className="control-btn" onClick={increaseFontSize}>
+          <button className="control-btn" onClick={increaseFontSize} title="增大字体">
             A+
           </button>
-          <button className="control-btn" onClick={toggleDarkMode}>
+          <button className="control-btn" onClick={toggleDarkMode} title="切换模式">
             {darkMode ? '☀️' : '🌙'}
           </button>
         </div>
       </nav>
 
+      {/* 目录弹窗 */}
       {showChapters && (
         <div style={{
           position: 'fixed',
-          top: '60px',
+          top: '50px',
           left: 0,
           right: 0,
           bottom: 0,
           background: darkMode ? '#16213E' : 'white',
           overflow: 'auto',
           padding: '1rem',
-          zIndex: 50
+          zIndex: 50,
+          animation: 'fadeIn 0.2s ease-out'
         }}>
           <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3>目录</h3>
-              <button onClick={() => setShowChapters(false)} className="control-btn">关闭</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', position: 'sticky', top: 0, background: darkMode ? '#16213E' : 'white', padding: '0.5rem 0' }}>
+              <h3 style={{ margin: 0 }}>📚 目录</h3>
+              <button 
+                onClick={() => setShowChapters(false)} 
+                className="control-btn"
+                style={{ padding: '0.375rem 0.75rem' }}
+              >
+                ✕ 关闭
+              </button>
             </div>
             <div className="chapter-list">
               {chapters.map((chap, index) => (
@@ -137,11 +164,17 @@ export default function Reader() {
                   className="chapter-item"
                   style={{
                     background: chap.id === chapterId ? 'var(--primary)' : undefined,
-                    color: chap.id === chapterId ? 'white' : undefined
+                    color: chap.id === chapterId ? 'white' : undefined,
+                    borderColor: chap.id === chapterId ? 'var(--primary)' : undefined
                   }}
                   onClick={() => setShowChapters(false)}
                 >
-                  <span>第{chap.chapter_num || index + 1}章 {chap.title}</span>
+                  <span>
+                    <span className="chapter-num" style={{ color: chap.id === chapterId ? 'white' : undefined }}>
+                      第{chap.chapter_num || index + 1}章
+                    </span>
+                    {' '}{chap.title}
+                  </span>
                 </Link>
               ))}
             </div>
@@ -168,6 +201,7 @@ export default function Reader() {
           className="nav-btn" 
           onClick={goToPrevChapter}
           disabled={!hasPrev}
+          style={{ whiteSpace: 'pre-line' }}
         >
           {hasPrev ? `← 上一章\n第${chapters[currentIndex - 1]?.chapter_num || currentIndex}章` : '已经是第一章'}
         </button>
@@ -175,6 +209,7 @@ export default function Reader() {
           className="nav-btn" 
           onClick={goToNextChapter}
           disabled={!hasNext}
+          style={{ whiteSpace: 'pre-line' }}
         >
           {hasNext ? `下一章 →\n第${chapters[currentIndex + 1]?.chapter_num || currentIndex + 2}章` : '已经是最后一章'}
         </button>

@@ -1,9 +1,26 @@
 // 飞书多维表格服务
-const FEISHU_APP_TOKEN = process.env.FEISHU_APP_TOKEN || 'A6FKb7Sy5aBtJGsMPcpcWIL9nNd';
-const FEISHU_CHAPTER_TOKEN = process.env.FEISHU_CHAPTER_TOKEN || 'Sl1QbktwXaF8dFsYQdCcKeYZnob';
-const FEISHU_ACCESS_TOKEN = process.env.FEISHU_ACCESS_TOKEN;
+const { Client } = require('@larksuiteoapi/node-sdk');
 
-// 模拟数据（开发环境使用）
+// 环境变量配置
+const APP_ID = process.env.FEISHU_APP_ID || 'cli_a5a6f4c2b30c900c';
+const APP_SECRET = process.env.FEISHU_APP_SECRET || 'qlYN8Zs8mokq2ksqZs8mokq2ksq';
+const NOVELS_TABLE_TOKEN = process.env.FEISHU_NOVELS_TOKEN || 'S2pcMn2l4a2X8d1s4c5d6f7g8h9';
+const CHAPTERS_TABLE_TOKEN = process.env.FEISHU_CHAPTERS_TOKEN || 'S3qdRs3m5bE9f2t4w6x8y0z2a4b';
+
+// 初始化飞书客户端
+let client = null;
+try {
+  client = new Client({
+    appId: APP_ID,
+    appSecret: APP_SECRET,
+    logLevel: 'debug',
+  });
+  console.log('飞书客户端初始化成功');
+} catch (error) {
+  console.warn('飞书客户端初始化失败:', error.message);
+}
+
+// 模拟数据（开发环境或无配置时使用）
 const mockNovels = [
   {
     id: '1',
@@ -119,11 +136,140 @@ const mockChapters = {
   ]
 };
 
-// 章节内容缓存（用于演示）
-const chapterContents = {};
+// 检查飞书客户端是否可用
+function isFeishuConfigured() {
+  return client !== null && APP_ID !== 'cli_a5a6f4c2b30c900c';
+}
+
+// 从飞书多维表格获取小说列表
+async function getNovelsFromFeishu() {
+  if (!client) {
+    throw new Error('飞书客户端未初始化');
+  }
+
+  try {
+    const response = await client.bitable.record.list({
+      app_token: NOVELS_TABLE_TOKEN,
+      table_id: 'tblnovels', // 默认表ID，可根据实际情况调整
+      page_size: 100,
+    });
+
+    if (response.data && response.data.items) {
+      return response.data.items.map(record => ({
+        id: record.fields.id || record.record_id,
+        title: record.fields.title || '',
+        author: record.fields.author || '',
+        cover: record.fields.cover || '',
+        description: record.fields.description || '',
+        category: record.fields.category || '',
+        status: record.fields.status || '',
+        word_count: record.fields.word_count || 0,
+        rating: record.fields.rating || '0.0',
+        views: record.fields.views || 0,
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.error('获取飞书小说数据失败:', error.message);
+    throw error;
+  }
+}
+
+// 从飞书多维表格获取章节列表
+async function getChaptersFromFeishu(novelId) {
+  if (!client) {
+    throw new Error('飞书客户端未初始化');
+  }
+
+  try {
+    const response = await client.bitable.record.list({
+      app_token: CHAPTERS_TABLE_TOKEN,
+      table_id: 'tblchapters',
+      filter: JSON.stringify({
+        conditions: [{
+          field_name: 'novel_id',
+          operator: 'equal',
+          value: [novelId]
+        }],
+        relation: 'and'
+      }),
+      page_size: 500,
+    });
+
+    if (response.data && response.data.items) {
+      return response.data.items.map(record => ({
+        id: record.record_id,
+        novel_id: record.fields.novel_id || '',
+        title: record.fields.title || '',
+        chapter_num: record.fields.chapter_num || 0,
+        word_count: record.fields.word_count || 0,
+        content: record.fields.content || '',
+      })).sort((a, b) => a.chapter_num - b.chapter_num);
+    }
+    return [];
+  } catch (error) {
+    console.error('获取飞书章节数据失败:', error.message);
+    throw error;
+  }
+}
+
+// 从飞书多维表格获取章节内容
+async function getChapterContentFromFeishu(chapterId) {
+  if (!client) {
+    throw new Error('飞书客户端未初始化');
+  }
+
+  try {
+    const response = await client.bitable.record.get({
+      app_token: CHAPTERS_TABLE_TOKEN,
+      table_id: 'tblchapters',
+      record_id: chapterId,
+    });
+
+    if (response.data && response.data.fields) {
+      return {
+        id: response.data.record_id,
+        novel_id: response.data.fields.novel_id || '',
+        title: response.data.fields.title || '',
+        chapter_num: response.data.fields.chapter_num || 0,
+        word_count: response.data.fields.word_count || 0,
+        content: response.data.fields.content || '',
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('获取飞书章节内容失败:', error.message);
+    throw error;
+  }
+}
 
 // 获取小说列表
 async function getNovels(params = {}) {
+  // 优先尝试从飞书获取数据
+  if (isFeishuConfigured()) {
+    try {
+      const novels = await getNovelsFromFeishu();
+      let result = [...novels];
+      
+      if (params.category) {
+        result = result.filter(n => n.category === params.category);
+      }
+      
+      if (params.keyword) {
+        const keyword = params.keyword.toLowerCase();
+        result = result.filter(n => 
+          n.title.toLowerCase().includes(keyword) || 
+          n.author.toLowerCase().includes(keyword)
+        );
+      }
+      
+      return { novels: result, source: 'feishu' };
+    } catch (error) {
+      console.warn('飞书数据获取失败，使用本地数据:', error.message);
+    }
+  }
+  
+  // 使用本地模拟数据
   let novels = [...mockNovels];
   
   if (params.category) {
@@ -138,31 +284,68 @@ async function getNovels(params = {}) {
     );
   }
   
-  return { novels };
+  return { novels, source: 'mock' };
 }
 
 // 获取小说详情
 async function getNovelDetail(id) {
+  // 优先尝试从飞书获取数据
+  if (isFeishuConfigured()) {
+    try {
+      const novels = await getNovelsFromFeishu();
+      const novel = novels.find(n => n.id === id);
+      if (novel) {
+        return { novel, source: 'feishu' };
+      }
+    } catch (error) {
+      console.warn('飞书数据获取失败，使用本地数据:', error.message);
+    }
+  }
+  
+  // 使用本地模拟数据
   const novel = mockNovels.find(n => n.id === id);
-  return { novel };
+  return { novel: novel || null, source: 'mock' };
 }
 
 // 获取章节列表
 async function getChapters(novelId) {
+  // 优先尝试从飞书获取数据
+  if (isFeishuConfigured()) {
+    try {
+      const chapters = await getChaptersFromFeishu(novelId);
+      return { chapters, source: 'feishu' };
+    } catch (error) {
+      console.warn('飞书章节数据获取失败，使用本地数据:', error.message);
+    }
+  }
+  
+  // 使用本地模拟数据
   const chapters = mockChapters[novelId] || [];
-  return { chapters };
+  return { chapters, source: 'mock' };
 }
 
 // 获取章节内容
 async function getChapterContent(chapterId) {
-  // 查找章节
+  // 优先尝试从飞书获取数据
+  if (isFeishuConfigured()) {
+    try {
+      const chapter = await getChapterContentFromFeishu(chapterId);
+      if (chapter) {
+        return { chapter, source: 'feishu' };
+      }
+    } catch (error) {
+      console.warn('飞书章节内容获取失败，使用本地数据:', error.message);
+    }
+  }
+  
+  // 使用本地模拟数据
   for (const novelId in mockChapters) {
     const chapter = mockChapters[novelId].find(c => c.id === chapterId);
     if (chapter) {
-      return { chapter };
+      return { chapter, source: 'mock' };
     }
   }
-  return { chapter: null };
+  return { chapter: null, source: 'mock' };
 }
 
 module.exports = {
@@ -171,5 +354,6 @@ module.exports = {
   getChapters,
   getChapterContent,
   mockNovels,
-  mockChapters
+  mockChapters,
+  isFeishuConfigured
 };

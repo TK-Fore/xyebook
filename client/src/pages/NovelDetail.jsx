@@ -12,6 +12,7 @@ export default function NovelDetail() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [anonymous, setAnonymous] = useState(false);
+  const [showMobileActions, setShowMobileActions] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -133,7 +134,7 @@ export default function NovelDetail() {
               </div>
               <div className="stat-item">
                 <span className="stat-label">字数</span>
-                <span className="stat-value">{novel.word_count?.toLocaleString() || 0} 字</span>
+                <span className="stat-value">{(novel.word_count || 0).toLocaleString()} 字</span>
               </div>
               <div className="stat-item">
                 <span className="stat-label">评分</span>
@@ -159,8 +160,21 @@ export default function NovelDetail() {
           </div>
         </div>
 
+        {/* 手机端快捷操作按钮 */}
+        <div className="mobile-quick-actions" style={{ display: 'none' }}>
+          <button className="btn btn-primary" onClick={handleRead}>
+            📖 阅读
+          </button>
+          <button 
+            className={`btn ${isFavorite ? 'btn-accent' : 'btn-outline'}`}
+            onClick={handleFavorite}
+          >
+            {isFavorite ? '❤️' : '🤍'}
+          </button>
+        </div>
+
         <div className="chapter-section">
-          <h2 className="section-title">目录 ({chapters.length} 章)</h2>
+          <h2 className="section-title">📚 目录 ({chapters.length} 章)</h2>
           <div className="chapter-list">
             {chapters.map((chapter, index) => (
               <Link 
@@ -172,16 +186,21 @@ export default function NovelDetail() {
                   <span className="chapter-num">第{chapter.chapter_num || index + 1}章</span>
                   {chapter.title}
                 </span>
-                <span style={{ fontSize: '0.8rem', color: '#7F8C8D' }}>
-                  {chapter.word_count || 0}字
+                <span style={{ fontSize: '0.75rem', color: '#95A5A6' }}>
+                  {(chapter.word_count || 0).toLocaleString()}字
                 </span>
               </Link>
             ))}
+            {chapters.length === 0 && (
+              <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
+                <p>暂无章节</p>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="comments-section">
-          <h2 className="section-title">评论</h2>
+          <h2 className="section-title">💬 评论</h2>
           <form className="comment-form" onSubmit={handleComment}>
             <textarea
               className="comment-input"
@@ -189,8 +208,8 @@ export default function NovelDetail() {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
             />
-            <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>
                 <input 
                   type="checkbox" 
                   checked={anonymous}
@@ -211,7 +230,7 @@ export default function NovelDetail() {
                     {comment.anonymous ? '匿名用户' : comment.author}
                   </span>
                   <span className="comment-time">
-                    {new Date(comment.created_at).toLocaleDateString()}
+                    {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : ''}
                   </span>
                 </div>
                 <p className="comment-content">{comment.content}</p>
