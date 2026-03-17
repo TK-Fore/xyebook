@@ -11,8 +11,8 @@ app.use(express.json());
 // 获取小说列表
 app.get('/', async (req, res) => {
   try {
-    const { category, keyword } = req.query;
-    const result = await getNovels({ category, keyword });
+    const { category, keyword, searchType, status, sortBy, sortOrder } = req.query;
+    const result = await getNovels({ category, keyword, searchType, status, sortBy, sortOrder });
     res.json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });

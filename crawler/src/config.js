@@ -1,4 +1,6 @@
 // 配置文件
+require('dotenv').config();
+
 module.exports = {
   // 请求配置
   request: {

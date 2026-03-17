@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getNovelDetail, getChapters, addFavorite, removeFavorite, getComments, addComment, isLoggedIn } from '../services/api';
 
@@ -13,11 +13,33 @@ export default function NovelDetail() {
   const [commentText, setCommentText] = useState('');
   const [anonymous, setAnonymous] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(false);
-  const [expandedVolumes, setExpandedVolumes] = useState({}); // 卷展开状态
+  const [expandedVolumes, setExpandedVolumes] = useState({});
+
+  // 触摸返回相关
+  const touchStartX = useRef(null);
 
   useEffect(() => {
     loadData();
   }, [id]);
+
+  // 触摸滑动返回
+  const handleTouchStart = useCallback((e) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback((e) => {
+    if (touchStartX.current === null) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaX = touchStartX.current - touchEndX;
+
+    // 右滑超过阈值返回首页
+    if (deltaX < -50) {
+      navigate('/');
+    }
+
+    touchStartX.current = null;
+  }, [navigate]);
 
   // 按卷分组章节
   const groupedChapters = chapters.reduce((acc, chapter, index) => {
@@ -49,7 +71,6 @@ export default function NovelDetail() {
       setChapters(chapterData.chapters || []);
       setComments(commentData.comments || []);
       
-      // 检查是否已收藏
       if (isLoggedIn()) {
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         setIsFavorite(favorites.includes(id));
@@ -119,7 +140,11 @@ export default function NovelDetail() {
   }
 
   return (
-    <>
+    <div 
+      className="novel-detail-page"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <header className="header">
         <div className="header-content">
           <Link to="/" className="logo">
@@ -178,23 +203,14 @@ export default function NovelDetail() {
           </div>
         </div>
 
-        {/* 手机端快捷操作按钮 */}
-        <div className="mobile-quick-actions" style={{ display: 'none' }}>
-          <button className="btn btn-primary" onClick={handleRead}>
-            📖 阅读
-          </button>
-          <button 
-            className={`btn ${isFavorite ? 'btn-accent' : 'btn-outline'}`}
-            onClick={handleFavorite}
-          >
-            {isFavorite ? '❤️' : '🤍'}
-          </button>
+        {/* 返回提示 */}
+        <div className="swipe-back-hint">
+          ← 左滑返回首页
         </div>
 
         <div className="chapter-section">
           <h2 className="section-title">📚 目录 ({chapters.length} 章)</h2>
           
-          {/* 按卷分组显示 */}
           {Object.keys(groupedChapters).length > 1 ? (
             Object.entries(groupedChapters).map(([volume, volChapters]) => (
               <div key={volume} className="volume-group">
@@ -217,7 +233,7 @@ export default function NovelDetail() {
                         <span className="chapter-num">第{chapter.chapter_num || chapter.index + 1}章</span>
                         {chapter.title}
                       </span>
-                      <span style={{ fontSize: '0.75rem', color: '#95A5A6' }}>
+                      <span className="chapter-word-count">
                         {(chapter.word_count || 0).toLocaleString()}字
                       </span>
                     </Link>
@@ -226,7 +242,6 @@ export default function NovelDetail() {
               </div>
             ))
           ) : (
-            /* 单卷显示 */
             <div className="chapter-list">
               {chapters.map((chapter, index) => (
                 <Link 
@@ -238,7 +253,7 @@ export default function NovelDetail() {
                     <span className="chapter-num">第{chapter.chapter_num || index + 1}章</span>
                     {chapter.title}
                   </span>
-                  <span style={{ fontSize: '0.75rem', color: '#95A5A6' }}>
+                  <span className="chapter-word-count">
                     {(chapter.word_count || 0).toLocaleString()}字
                   </span>
                 </Link>
@@ -247,7 +262,7 @@ export default function NovelDetail() {
           )}
           
           {chapters.length === 0 && (
-            <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
+            <div className="empty-state">
               <p>暂无章节</p>
             </div>
           )}
@@ -262,8 +277,8 @@ export default function NovelDetail() {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
             />
-            <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>
+            <div className="comment-form-footer">
+              <label className="anonymous-checkbox">
                 <input 
                   type="checkbox" 
                   checked={anonymous}
@@ -291,13 +306,13 @@ export default function NovelDetail() {
               </div>
             ))}
             {comments.length === 0 && (
-              <div className="empty-state" style={{ padding: '1rem' }}>
+              <div className="empty-state">
                 <p>暂无评论，快来抢沙发~</p>
               </div>
             )}
           </div>
         </div>
       </main>
-    </>
+    </div>
   );
 }

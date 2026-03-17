@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getNovels } from '../services/api';
+import { getNovels, getReadingProgress } from '../services/api';
 
 const categories = [
   { name: '全部', icon: '📚' },
@@ -42,6 +42,52 @@ function NovelCard({ novel }) {
   );
 }
 
+// 继续阅读卡片组件
+function ContinueReadingCard({ novelId, onClick }) {
+  const [novelInfo, setNovelInfo] = useState(null);
+  const [progress, setProgress] = useState(null);
+  
+  useEffect(() => {
+    const loadProgress = async () => {
+      const progressData = getReadingProgress(novelId);
+      if (progressData) {
+        setProgress(progressData);
+        // 获取小说信息
+        try {
+          const data = await import('../services/api').then(m => m.getNovelDetail(novelId));
+          if (data.novel) {
+            setNovelInfo(data.novel);
+          }
+        } catch (e) {
+          console.error('获取小说信息失败:', e);
+        }
+      }
+    };
+    loadProgress();
+  }, [novelId]);
+
+  if (!progress) return null;
+
+  return (
+    <div className="continue-reading-card" onClick={onClick}>
+      <div className="continue-reading-cover">
+        {novelInfo?.cover ? (
+          <img src={novelInfo.cover} alt={novelInfo.title} />
+        ) : (
+          <div className="continue-reading-placeholder">📖</div>
+        )}
+      </div>
+      <div className="continue-reading-info">
+        <h3 className="continue-reading-title">{progress.novelTitle || '未知小说'}</h3>
+        <p className="continue-reading-chapter">
+          {progress.title || `上次阅读：第${progress.chapterNum || 1}章`}
+        </p>
+        <span className="continue-reading-btn">继续阅读 →</span>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [novels, setNovels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,9 +95,11 @@ export default function Home() {
   const [keyword, setKeyword] = useState('');
   const [navOpen, setNavOpen] = useState(false);
   const [source, setSource] = useState('');
+  const [recentNovels, setRecentNovels] = useState([]);
 
   useEffect(() => {
     loadNovels();
+    loadRecentReading();
   }, [category]);
 
   // 点击外部关闭导航
@@ -64,6 +112,26 @@ export default function Home() {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, [navOpen]);
+
+  // 加载最近阅读的小说
+  function loadRecentReading() {
+    try {
+      const history = JSON.parse(localStorage.getItem('xyebook_reading_history') || '[]');
+      // 获取最近阅读的不同小说
+      const uniqueNovels = [];
+      const seen = new Set();
+      for (const item of history) {
+        if (!seen.has(item.novelId)) {
+          seen.add(item.novelId);
+          uniqueNovels.push(item.novelId);
+          if (uniqueNovels.length >= 3) break;
+        }
+      }
+      setRecentNovels(uniqueNovels);
+    } catch (e) {
+      console.error('加载阅读历史失败:', e);
+    }
+  }
 
   async function loadNovels() {
     setLoading(true);
@@ -155,6 +223,40 @@ export default function Home() {
       </header>
 
       <main className="main-content">
+        {/* 继续阅读区域 */}
+        {recentNovels.length > 0 && !keyword && (
+          <div className="continue-reading-section">
+            <h2 className="section-subtitle">📖 最近阅读</h2>
+            <div className="continue-reading-grid">
+              {recentNovels.map((novelId) => {
+                const history = JSON.parse(localStorage.getItem('xyebook_reading_history') || '[]');
+                const progress = history.find(h => h.novelId === novelId);
+                if (!progress) return null;
+                
+                return (
+                  <Link 
+                    key={novelId}
+                    to={`/read/${progress.novelId}/${progress.chapterId}`}
+                    className="continue-reading-item"
+                  >
+                    <div className="continue-reading-cover">
+                      {progress.novelCover ? (
+                        <img src={progress.novelCover} alt={progress.novelTitle} />
+                      ) : (
+                        <div className="continue-reading-placeholder">📖</div>
+                      )}
+                    </div>
+                    <div className="continue-reading-info">
+                      <h3>{progress.novelTitle || '未知小说'}</h3>
+                      <p>{progress.title || `第${progress.chapterNum || 1}章`}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="category-tabs">
           {categories.map((cat) => (
             <button
@@ -197,6 +299,83 @@ export default function Home() {
       <footer className="footer">
         <p>© 2024 小羊书吧 - 优质小说阅读平台 🐑</p>
       </footer>
+
+      <style>{`
+        .continue-reading-section {
+          margin-bottom: 1.5rem;
+          padding: 1rem;
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          border-radius: 12px;
+        }
+        .section-subtitle {
+          font-size: 1.1rem;
+          font-weight: 600;
+          margin: 0 0 1rem;
+          color: #333;
+        }
+        .continue-reading-grid {
+          display: flex;
+          gap: 1rem;
+          overflow-x: auto;
+          padding-bottom: 0.5rem;
+          -webkit-overflow-scrolling: touch;
+        }
+        .continue-reading-item {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.75rem;
+          background: white;
+          border-radius: 10px;
+          text-decoration: none;
+          color: inherit;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          min-width: 200px;
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .continue-reading-item:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        .continue-reading-cover {
+          width: 40px;
+          height: 56px;
+          border-radius: 4px;
+          overflow: hidden;
+          flex-shrink: 0;
+          background: #e0e0e0;
+        }
+        .continue-reading-cover img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .continue-reading-placeholder {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.25rem;
+          background: linear-gradient(135deg, #89CFF0 0%, #6BB3D9 100%);
+          color: white;
+        }
+        .continue-reading-info h3 {
+          font-size: 0.9rem;
+          font-weight: 600;
+          margin: 0 0 0.25rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          max-width: 120px;
+        }
+        .continue-reading-info p {
+          font-size: 0.75rem;
+          color: #666;
+          margin: 0;
+        }
+      `}</style>
     </>
   );
 }

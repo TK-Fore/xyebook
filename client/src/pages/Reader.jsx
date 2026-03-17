@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getChapterContent, getChapters, saveReadingHistory, isLoggedIn } from '../services/api';
+import Loading from '../components/Loading';
 
 export default function Reader() {
   const { novelId, chapterId } = useParams();
@@ -125,11 +126,19 @@ export default function Reader() {
   }
 
   if (loading) {
-    return <div className="loading">加载中...</div>;
+    return (
+      <div className="reader-page">
+        <Loading type="page" text="章节加载中..." />
+      </div>
+    );
   }
 
   if (!chapter) {
-    return <div className="empty-state">章节不存在</div>;
+    return (
+      <div className="reader-page">
+        <div className="empty-state">章节不存在</div>
+      </div>
+    );
   }
 
   const currentIndex = getCurrentIndex();
