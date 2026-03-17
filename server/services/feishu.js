@@ -233,14 +233,18 @@ async function getChapterContentFromFeishu(chapterId) {
 
 // 获取小说列表
 async function getNovels(params = {}) {
-  const debugInfo = {
-    isConfigured: isFeishuConfigured(),
-    hasAppId: !!APP_ID,
-    hasAppSecret: !!APP_SECRET,
-    hasToken: !!NOVELS_TABLE_TOKEN,
-    nodeEnv: process.env.NODE_ENV
+  const envStatus = {
+    APP_ID: process.env.FEISHU_APP_ID ? 'SET' : 'NOT_SET',
+    APP_SECRET: process.env.FEISHU_APP_SECRET ? 'SET' : 'NOT_SET',
+    NOVELS_TOKEN: process.env.FEISHU_NOVELS_TOKEN ? 'SET' : 'NOT_SET',
+    CHAPTERS_TOKEN: process.env.FEISHU_CHAPTERS_TOKEN ? 'SET' : 'NOT_SET'
   };
-  console.log('[Feishu] Debug:', JSON.stringify(debugInfo));
+  console.log('[Feishu] ENV Status:', JSON.stringify(envStatus));
+  
+  // 如果环境变量设置了，返回状态信息（用于调试）
+  if (Object.values(envStatus).some(v => v === 'SET')) {
+    console.log('[Feishu] Environment variables DETECTED, trying feishu...');
+  }
   
   if (isFeishuConfigured()) {
     try {
