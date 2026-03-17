@@ -279,8 +279,7 @@ async function getNovels(params = {}) {
       console.warn('[Feishu] Client or Token missing, using mock');
     }
   } catch (error) {
-      console.warn('飞书数据获取失败，使用本地数据:', error.message);
-    }
+    console.warn('飞书数据获取失败，使用本地数据:', error.message);
   }
   
   // 使用本地模拟数据
