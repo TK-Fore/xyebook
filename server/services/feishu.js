@@ -140,11 +140,12 @@ const mockChapters = {
 
 // 检查飞书客户端是否可用
 function isFeishuConfigured() {
-  // 检查环境变量是否配置（不是默认值）
-  const hasAppId = process.env.FEISHU_APP_ID && process.env.FEISHU_APP_ID !== 'cli_a5a6f4c2b30c900c';
-  const hasAppSecret = process.env.FEISHU_APP_SECRET && process.env.FEISHU_APP_SECRET !== 'qlYN8Zs8mokq2ksqZs8mokq2ksq';
-  const hasAppToken = process.env.FEISHU_NOVELS_TOKEN;
-  return client !== null && hasAppId && hasAppSecret && hasAppToken;
+  // 检查环境变量是否配置
+  const hasAppId = process.env.FEISHU_APP_ID;
+  const hasAppSecret = process.env.FEISHU_APP_SECRET;
+  const hasNovelsToken = process.env.FEISHU_NOVELS_TOKEN;
+  const hasChaptersToken = process.env.FEISHU_CHAPTERS_TOKEN;
+  return client !== null && hasAppId && hasAppSecret && hasNovelsToken && hasChaptersToken;
 }
 
 // 从飞书多维表格获取小说列表
@@ -162,16 +163,16 @@ async function getNovelsFromFeishu() {
 
     if (response.data && response.data.items) {
       return response.data.items.map(record => ({
-        id: record.fields.id || record.record_id,
-        title: record.fields.title || '',
-        author: record.fields.author || '',
-        cover: record.fields.cover || '',
-        description: record.fields.description || '',
-        category: record.fields.category || '',
-        status: record.fields.status || '',
-        word_count: record.fields.word_count || 0,
-        rating: record.fields.rating || '0.0',
-        views: record.fields.views || 0,
+        id: record.fields['文本'] || record.record_id,
+        title: record.fields['书名'] || '',
+        author: record.fields['作者'] || '',
+        cover: record.fields['附件'] || '',
+        description: record.fields['简介'] || '',
+        category: record.fields['类型'] || '',
+        status: record.fields['状态'] || '',
+        word_count: record.fields['字数'] || 0,
+        rating: record.fields['评分'] || '0.0',
+        views: record.fields['阅读量'] || 0,
       }));
     }
     return [];
@@ -205,11 +206,11 @@ async function getChaptersFromFeishu(novelId) {
     if (response.data && response.data.items) {
       return response.data.items.map(record => ({
         id: record.record_id,
-        novel_id: record.fields.novel_id || '',
-        title: record.fields.title || '',
-        chapter_num: record.fields.chapter_num || 0,
-        word_count: record.fields.word_count || 0,
-        content: record.fields.content || '',
+        novel_id: record.fields['文本'] || '',
+        title: record.fields['章节标题'] || '',
+        chapter_num: record.fields['章节序号'] || 0,
+        word_count: record.fields['字数'] || 0,
+        content: record.fields['内容'] || '',
       })).sort((a, b) => a.chapter_num - b.chapter_num);
     }
     return [];
@@ -235,11 +236,11 @@ async function getChapterContentFromFeishu(chapterId) {
     if (response.data && response.data.fields) {
       return {
         id: response.data.record_id,
-        novel_id: response.data.fields.novel_id || '',
-        title: response.data.fields.title || '',
-        chapter_num: response.data.fields.chapter_num || 0,
-        word_count: response.data.fields.word_count || 0,
-        content: response.data.fields.content || '',
+        novel_id: response.data.fields['文本'] || '',
+        title: response.data.fields['章节标题'] || '',
+        chapter_num: response.data.fields['章节序号'] || 0,
+        word_count: response.data.fields['字数'] || 0,
+        content: response.data.fields['内容'] || '',
       };
     }
     return null;
