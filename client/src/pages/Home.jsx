@@ -12,6 +12,15 @@ const categories = [
   { name: '游戏', icon: '🎮' }
 ];
 
+// 主题列表
+const themes = [
+  { id: 'default', icon: '🐑', name: '清新蓝', class: '' },
+  { id: 'pink', icon: '🌸', name: '少女粉', class: 'theme-pink' },
+  { id: 'purple', icon: '💜', name: '梦幻紫', class: 'theme-purple' },
+  { id: 'green', icon: '🌿', name: '森系绿', class: 'theme-green' },
+  { id: 'orange', icon: '🍊', name: '活力橙', class: 'theme-orange' },
+];
+
 function NovelCard({ novel }) {
   return (
     <Link to={`/novel/${novel.id}`} className="novel-card">
@@ -96,6 +105,22 @@ export default function Home() {
   const [navOpen, setNavOpen] = useState(false);
   const [source, setSource] = useState('');
   const [recentNovels, setRecentNovels] = useState([]);
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    return localStorage.getItem('xyebook_theme') || 'default';
+  });
+  const [showThemePanel, setShowThemePanel] = useState(false);
+
+  // 应用主题
+  useEffect(() => {
+    document.body.className = themes.find(t => t.id === currentTheme)?.class || '';
+    localStorage.setItem('xyebook_theme', currentTheme);
+  }, [currentTheme]);
+
+  // 切换主题
+  function switchTheme(themeId) {
+    setCurrentTheme(themeId);
+    setShowThemePanel(false);
+  }
 
   useEffect(() => {
     loadNovels();
@@ -200,6 +225,66 @@ export default function Home() {
           </form>
           
           <nav className={`nav-links ${navOpen ? 'active' : ''}`}>
+            {/* 主题切换按钮 */}
+            <div className="theme-selector" style={{ position: 'relative' }}>
+              <button 
+                className="nav-link theme-btn"
+                onClick={() => setShowThemePanel(!showThemePanel)}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+              >
+                {themes.find(t => t.id === currentTheme)?.icon || '🎨'}
+                <span style={{ fontSize: '0.75rem' }}>主题</span>
+              </button>
+              {showThemePanel && (
+                <div className="theme-panel" style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '0.5rem',
+                  background: 'white',
+                  borderRadius: 'var(--radius)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                  padding: '0.75rem',
+                  zIndex: 1000,
+                  minWidth: '160px',
+                  animation: 'fadeIn 0.2s ease-out'
+                }}>
+                  <div style={{ 
+                    fontSize: '0.75rem', 
+                    color: 'var(--text-light)', 
+                    marginBottom: '0.5rem',
+                    fontWeight: 600
+                  }}>
+                    选择主题
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                    {themes.map(theme => (
+                      <button
+                        key={theme.id}
+                        onClick={() => switchTheme(theme.id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          padding: '0.5rem 0.75rem',
+                          border: 'none',
+                          borderRadius: '8px',
+                          background: currentTheme === theme.id ? 'var(--primary-lighter)' : 'transparent',
+                          cursor: 'pointer',
+                          fontSize: '0.875rem',
+                          color: 'var(--text-primary)',
+                          transition: 'background 0.2s'
+                        }}
+                      >
+                        <span>{theme.icon}</span>
+                        <span>{theme.name}</span>
+                        {currentTheme === theme.id && <span style={{ marginLeft: 'auto', color: 'var(--primary-dark)' }}>✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             <Link 
               to="/profile" 
               className="nav-link"
@@ -271,7 +356,7 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div className="loading">加载中...</div>
+          <Loading type="page" text="正在加载小说" />
         ) : novels.length > 0 ? (
           <>
             {source && (
@@ -286,12 +371,13 @@ export default function Home() {
             </div>
           </>
         ) : (
-          <div className="empty-state">
+          <div className="empty-state search">
             <div className="empty-icon">📚</div>
-            <p>暂无小说</p>
-            <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-              分类: {category} {keyword && `| 关键词: ${keyword}`}
-            </p>
+            <h3>暂无小说</h3>
+            <p>分类: {category} {keyword && `| 关键词: ${keyword}`}</p>
+            <span className="empty-hint">
+              💡 试试其他分类或关键词？
+            </span>
           </div>
         )}
       </main>

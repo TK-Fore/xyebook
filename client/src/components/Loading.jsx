@@ -22,21 +22,52 @@ export default function Loading({ type = 'spinner', text = '加载中...' }) {
   if (type === 'page') {
     return (
       <div className="loading-page">
-        <div className="loading-spinner"></div>
-        <p>{text}</p>
+        <div className="loading-sheep">
+          <div className="sheep-body">
+            <div className="sheep-leg"></div>
+            <div className="sheep-leg"></div>
+          </div>
+          <div className="sheep-head">
+            <div className="sheep-ear left"></div>
+            <div className="sheep-ear right"></div>
+            <div className="sheep-eye left"></div>
+            <div className="sheep-eye right"></div>
+          </div>
+        </div>
+        <p className="loading-text">{text}</p>
       </div>
+    );
+  }
+
+  if (type === 'inline') {
+    return (
+      <span className="loading-inline">
+        <span className="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+        <span>{text}</span>
+      </span>
     );
   }
 
   // 默认骨架屏卡片（用于列表页）
   return (
     <div className="loading-container">
-      <div className="loading-dots">
-        <span></span>
-        <span></span>
-        <span></span>
+      <div className="loading-sheep">
+        <div className="sheep-body">
+          <div className="sheep-leg"></div>
+          <div className="sheep-leg"></div>
+        </div>
+        <div className="sheep-head">
+          <div className="sheep-ear left"></div>
+          <div className="sheep-ear right"></div>
+          <div className="sheep-eye left"></div>
+          <div className="sheep-eye right"></div>
+        </div>
       </div>
-      <p>{text}</p>
+      <p className="loading-text">{text}</p>
     </div>
   );
 }

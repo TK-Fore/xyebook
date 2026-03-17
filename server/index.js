@@ -7,8 +7,21 @@ const novelRoutes = require('./routes/novels');
 const chapterRoutes = require('./routes/chapters');
 const userRoutes = require('./routes/user');
 const commentRoutes = require('./routes/comments');
+const ratingRoutes = require('./routes/ratings');
+const shareRoutes = require('./routes/share');
+const { logger, errorHandler, rateLimiter } = require('./middleware');
 
 const app = express();
+
+// 全局限流 - 每分钟100次请求
+app.use(rateLimiter({
+  windowMs: 60 * 1000,
+  maxRequests: 100,
+  message: '请求过于频繁，请稍后再试'
+}));
+
+// 请求日志
+app.use(logger);
 
 // 中间件
 app.use(cors());
@@ -24,6 +37,8 @@ app.use('/api/novels', novelRoutes);
 app.use('/api/chapters', chapterRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/ratings', ratingRoutes);
+app.use('/api/share', shareRoutes);
 
 // SPA fallback
 app.get('*', (req, res) => {
@@ -35,11 +50,8 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
 });
 
-// 错误处理
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: '服务器错误' });
-});
+// 全局错误处理（必须放在所有路由之后）
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

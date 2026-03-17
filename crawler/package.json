@@ -8,9 +8,10 @@
     "crawl": "node src/crawl.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
     "axios": "^1.6.0",
     "cheerio": "^1.0.0-rc.12",
-    "@supabase/supabase-js": "^2.39.0",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "pg": "^8.20.0"
   }
 }

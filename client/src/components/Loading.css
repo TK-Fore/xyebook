@@ -9,10 +9,20 @@
   min-height: 200px;
   gap: 1rem;
   color: var(--text-secondary);
+  padding: 2rem;
 }
 
 .loading-container p {
   font-size: 0.9375rem;
+}
+
+/* 内联加载 */
+.loading-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
 }
 
 /* 跳动小羊动画 */
@@ -22,8 +32,8 @@
 }
 
 .loading-dots span {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   background: var(--primary);
   border-radius: 50%;
   animation: bounce 1.4s ease-in-out infinite;
@@ -38,27 +48,164 @@
   40% { transform: scale(1); opacity: 1; }
 }
 
-/* 页面级加载 */
+/* 页面级加载 - 优化版小羊 */
 .loading-page {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 60vh;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
-.loading-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid var(--primary-lighter);
-  border-top-color: var(--primary);
+.loading-page p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+/* 跳动小羊动画 - 完整版 */
+.loading-sheep {
+  position: relative;
+  width: 80px;
+  height: 50px;
+  animation: sheep-float 2s ease-in-out infinite;
+}
+
+@keyframes sheep-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.loading-sheep .sheep-body {
+  position: absolute;
+  width: 55px;
+  height: 35px;
+  background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+  border-radius: 50% 50% 45% 45%;
+  top: 12px;
+  left: 12px;
+  box-shadow: 
+    0 4px 15px rgba(137, 207, 240, 0.25),
+    inset 0 -5px 10px rgba(0,0,0,0.05);
+  animation: sheep-body 1s ease-in-out infinite;
+}
+
+@keyframes sheep-body {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(1.02); }
+}
+
+.loading-sheep .sheep-body::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  right: 10px;
+  bottom: 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 4px,
+    rgba(200, 200, 200, 0.3) 4px,
+    rgba(200, 200, 200, 0.3) 6px
+  );
   border-radius: 50%;
-  animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.loading-sheep .sheep-head {
+  position: absolute;
+  width: 26px;
+  height: 24px;
+  background: linear-gradient(135deg, #89CFF0 0%, #5DADE2 100%);
+  border-radius: 50% 50% 45% 45%;
+  top: 3px;
+  right: 2px;
+  animation: sheep-head 1s ease-in-out infinite;
+}
+
+@keyframes sheep-head {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(2px); }
+}
+
+.loading-sheep .sheep-ear {
+  position: absolute;
+  width: 8px;
+  height: 14px;
+  background: linear-gradient(135deg, #89CFF0 0%, #5DADE2 100%);
+  border-radius: 50%;
+  top: -2px;
+  animation: sheep-ear 1s ease-in-out infinite;
+}
+
+.loading-sheep .sheep-ear.left {
+  left: -2px;
+  transform: rotate(-25deg);
+}
+
+.loading-sheep .sheep-ear.right {
+  right: -2px;
+  transform: rotate(25deg);
+}
+
+@keyframes sheep-ear {
+  0%, 100% { transform: rotate(-25deg); }
+  50% { transform: rotate(-20deg); }
+}
+
+.loading-sheep .sheep-eye {
+  position: absolute;
+  width: 4px;
+  height: 5px;
+  background: #2C3E50;
+  border-radius: 50%;
+  top: 8px;
+  animation: sheep-blink 3s ease-in-out infinite;
+}
+
+.loading-sheep .sheep-eye.left { left: 5px; }
+.loading-sheep .sheep-eye.right { right: 5px; }
+
+@keyframes sheep-blink {
+  0%, 45%, 55%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.1); }
+}
+
+.loading-sheep .sheep-leg {
+  position: absolute;
+  width: 6px;
+  height: 14px;
+  background: #2C3E50;
+  bottom: -6px;
+  border-radius: 3px;
+}
+
+.loading-sheep .sheep-leg:nth-child(2) { left: 18px; }
+.loading-sheep .sheep-leg:nth-child(3) { left: 35px; }
+
+/* 加载文字动画 */
+.loading-text {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.loading-text::after {
+  content: '';
+  width: 20px;
+  height: 16px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 50%, var(--primary) 100%);
+  background-size: 200% 100%;
+  animation: loading-dots 1.5s infinite;
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+@keyframes loading-dots {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 
 /* 骨架屏卡片 */

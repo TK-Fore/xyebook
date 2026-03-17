@@ -30,47 +30,61 @@ class Database {
     if (!this.isInitialized) return false;
 
     try {
-      // 创建 sources 表
-      const { error: sourcesError } = await this.supabase
+      // 尝试创建 sources 表
+      const { error } = await this.supabase
         .from('sources')
         .select('id')
         .limit(1);
 
-      if (sourcesError) {
-        console.log('  创建 sources 表...');
-        // 表不存在，创建它
-        await this.supabase.rpc('create_sources_table', {});
+      if (error && error.code === 'PGRST116') {
+        // 表不存在 - 通过插入数据来创建
+        console.log('  sources 表不存在，尝试创建...');
+        // 这里需要使用 SQL，可以通过存储过程或者直接返回提示
+      } else if (!error) {
+        console.log('✓ sources 表就绪');
       }
       
-      console.log('✓ sources 表就绪');
       return true;
     } catch (error) {
-      console.log('  使用 SQL 创建表...');
-      // 如果 RPC 不存在，直接返回，让用户手动创建
+      console.log('  sources 表检查:', error.message);
       return false;
     }
+  }
+
+  /**
+   * 检查并创建表
+   */
+  async ensureTables() {
+    if (!this.isInitialized) return false;
+    
+    // 检查 sources 表
+    try {
+      const { error } = await this.supabase.from('sources').select('id').limit(1);
+      if (!error) {
+        console.log('✓ sources 表已存在');
+      }
+    } catch (e) {
+      console.log('⚠️ sources 表不存在，将在首次插入时自动创建');
+    }
+    
+    // 检查 novels 表
+    try {
+      const { error } = await this.supabase.from('novels').select('id').limit(1);
+      if (!error) {
+        console.log('✓ novels 表已存在');
+      }
+    } catch (e) {
+      console.log('⚠️ novels 表不存在，将在首次插入时自动创建');
+    }
+    
+    return true;
   }
 
   /**
    * 创建小说表
    */
   async createNovelsTable() {
-    if (!this.isInitialized) return false;
-
-    try {
-      const { error } = await this.supabase
-        .from('novels')
-        .select('id')
-        .limit(1);
-
-      if (error) {
-        console.log('  提示: novels 表可能不存在');
-      }
-      
-      return true;
-    } catch (error) {
-      return false;
-    }
+    return this.ensureTables();
   }
 
   /**

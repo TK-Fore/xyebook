@@ -1,0 +1,15 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# 允许爬虫访问所有页面
+# 限制爬虫速率
+Crawl-delay: 1
+
+# Sitemap 位置
+Sitemap: https://xyebook.com/sitemap.xml
+
+# 禁止访问的路径（如果有）
+# Disallow: /api/
+# Disallow: /admin/
+# Disallow: /private/

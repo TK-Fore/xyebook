@@ -1,6 +1,84 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getNovelDetail, getChapters, addFavorite, removeFavorite, getComments, addComment, isLoggedIn } from '../services/api';
+import { getNovelDetail, getChapters, addFavorite, removeFavorite, getComments, addComment, isLoggedIn, addRating, getNovelRating, likeComment, getShareInfo } from '../services/api';
+
+// 星星评分组件
+function StarRating({ rating, onRate, readonly = false, size = 'normal' }) {
+  const [hoverRating, setHoverRating] = useState(0);
+  
+  return (
+    <div className={`star-rating ${readonly ? 'readonly' : ''} ${size}`}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span
+          key={star}
+          className={`star ${star <= (hoverRating || rating) ? 'active' : ''}`}
+          onClick={() => !readonly && onRate && onRate(star)}
+          onMouseEnter={() => !readonly && setHoverRating(star)}
+          onMouseLeave={() => !readonly && setHoverRating(0)}
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// 分享弹窗组件
+function ShareModal({ novel, onClose }) {
+  const [copied, setCopied] = useState(false);
+  const shareUrl = `${window.location.origin}/novel/${novel.id}`;
+  
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      // 兼容旧浏览器
+      const input = document.createElement('input');
+      input.value = shareUrl;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+  
+  const shareToWechat = () => {
+    // 生成微信分享二维码链接（需要实际二维码API）
+    alert('请使用微信扫一扫分享');
+  };
+  
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content share-modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>分享 "{novel.title}"</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="share-options">
+          <button className="share-btn" onClick={handleCopy}>
+            <span className="share-icon">🔗</span>
+            <span>{copied ? '已复制!' : '复制链接'}</span>
+          </button>
+          <button className="share-btn" onClick={shareToWechat}>
+            <span className="share-icon">💬</span>
+            <span>微信分享</span>
+          </button>
+        </div>
+        <div className="share-preview">
+          <img src={novel.cover} alt={novel.title} className="share-cover" />
+          <div className="share-info">
+            <h4>{novel.title}</h4>
+            <p>{novel.author}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function NovelDetail() {
   const { id } = useParams();
@@ -14,6 +92,22 @@ export default function NovelDetail() {
   const [anonymous, setAnonymous] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(false);
   const [expandedVolumes, setExpandedVolumes] = useState({});
+  
+  // 评分相关状态
+  const [userRating, setUserRating] = useState(0);
+  const [avgRating, setAvgRating] = useState(0);
+  const [ratingCount, setRatingCount] = useState(0);
+  const [hasRated, setHasRated] = useState(false);
+  
+  // 评论排序
+  const [commentSort, setCommentSort] = useState('latest'); // latest or popular
+  
+  // 分享弹窗
+  const [showShareModal, setShowShareModal] = useState(false);
+  
+  // 回复评论
+  const [replyTo, setReplyTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
 
   // 触摸返回相关
   const touchStartX = useRef(null);
@@ -61,15 +155,29 @@ export default function NovelDetail() {
   async function loadData() {
     setLoading(true);
     try {
-      const [novelData, chapterData, commentData] = await Promise.all([
+      const [novelData, chapterData, commentData, ratingData] = await Promise.all([
         getNovelDetail(id),
         getChapters(id),
-        getComments(id)
+        getComments(id),
+        getNovelRating(id)
       ]);
       
       setNovel(novelData.novel);
       setChapters(chapterData.chapters || []);
       setComments(commentData.comments || []);
+      
+      // 设置评分数据
+      if (ratingData.rating) {
+        setAvgRating(ratingData.rating.avgRating || 0);
+        setRatingCount(ratingData.rating.count || 0);
+      }
+      
+      // 检查本地是否已评分
+      const ratedNovels = JSON.parse(localStorage.getItem('rated_novels') || '{}');
+      if (ratedNovels[id]) {
+        setUserRating(ratedNovels[id]);
+        setHasRated(true);
+      }
       
       if (isLoggedIn()) {
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
@@ -103,6 +211,63 @@ export default function NovelDetail() {
     }
   }
 
+  // 处理评分
+  async function handleRating(rating) {
+    if (hasRated) return;
+    
+    try {
+      await addRating(id, rating);
+      setUserRating(rating);
+      setHasRated(true);
+      
+      // 本地保存评分记录
+      const ratedNovels = JSON.parse(localStorage.getItem('rated_novels') || '{}');
+      ratedNovels[id] = rating;
+      localStorage.setItem('rated_novels', JSON.stringify(ratedNovels));
+      
+      // 重新获取评分数据更新平均值
+      const ratingData = await getNovelRating(id);
+      if (ratingData.rating) {
+        setAvgRating(ratingData.rating.avgRating || 0);
+        setRatingCount(ratingData.rating.count || 0);
+      }
+    } catch (error) {
+      console.error('评分失败:', error);
+    }
+  }
+
+  // 处理评论点赞
+  async function handleLikeComment(commentId) {
+    try {
+      await likeComment(commentId);
+      // 更新本地评论点赞数
+      setComments(comments.map(c => 
+        c.id === commentId ? { ...c, likes: (c.likes || 0) + 1 } : c
+      ));
+    } catch (error) {
+      console.error('点赞失败:', error);
+    }
+  }
+
+  // 处理回复评论
+  async function handleReply(e) {
+    e.preventDefault();
+    if (!replyText.trim() || !replyTo) return;
+    
+    try {
+      await addComment({
+        novelId: id,
+        content: `@${replyTo.author}: ${replyText}`,
+        replyTo: replyTo.id
+      });
+      setReplyText('');
+      setReplyTo(null);
+      loadData();
+    } catch (error) {
+      console.error('回复失败:', error);
+    }
+  }
+
   function handleRead() {
     if (chapters.length > 0) {
       navigate(`/read/${id}/${chapters[0].id}`);
@@ -132,11 +297,20 @@ export default function NovelDetail() {
   }
 
   if (loading) {
-    return <div className="loading">加载中...</div>;
+    return <Loading type="page" text="小说加载中..." />;
   }
 
   if (!novel) {
-    return <div className="empty-state">小说不存在</div>;
+    return (
+      <div className="empty-state error">
+        <div className="empty-icon">😢</div>
+        <h3>小说不存在</h3>
+        <p>抱歉，您访问的小说可能已被删除或不存在</p>
+        <div className="empty-action">
+          <Link to="/" className="btn btn-primary">返回首页</Link>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -181,7 +355,18 @@ export default function NovelDetail() {
               </div>
               <div className="stat-item">
                 <span className="stat-label">评分</span>
-                <span className="stat-value">⭐ {novel.rating || '0.0'}</span>
+                <div className="stat-rating">
+                  <StarRating 
+                    rating={userRating || Math.round(avgRating)} 
+                    onRate={handleRating}
+                    readonly={hasRated}
+                    size="small"
+                  />
+                  <span className="rating-text">
+                    {avgRating > 0 ? `${avgRating.toFixed(1)}` : '0.0'} 
+                    ({ratingCount}人评)
+                  </span>
+                </div>
               </div>
               <div className="stat-item">
                 <span className="stat-label">状态</span>
@@ -198,6 +383,12 @@ export default function NovelDetail() {
                 onClick={handleFavorite}
               >
                 {isFavorite ? '❤️ 已收藏' : '🤍 收藏'}
+              </button>
+              <button 
+                className="btn btn-outline"
+                onClick={() => setShowShareModal(true)}
+              >
+                📤 分享
               </button>
             </div>
           </div>
@@ -263,7 +454,9 @@ export default function NovelDetail() {
           
           {chapters.length === 0 && (
             <div className="empty-state">
-              <p>暂无章节</p>
+              <div className="empty-icon">📖</div>
+              <h3>暂无章节</h3>
+              <p>作者正在努力创作中，敬请期待~</p>
             </div>
           )}
         </div>
@@ -291,8 +484,32 @@ export default function NovelDetail() {
               </button>
             </div>
           </form>
+          
+          {/* 评论排序 */}
+          <div className="comment-sort">
+            <button 
+              className={`sort-btn ${commentSort === 'latest' ? 'active' : ''}`}
+              onClick={() => setCommentSort('latest')}
+            >
+              最新
+            </button>
+            <button 
+              className={`sort-btn ${commentSort === 'popular' ? 'active' : ''}`}
+              onClick={() => setCommentSort('popular')}
+            >
+              最热
+            </button>
+          </div>
+          
           <div className="comment-list">
-            {comments.map((comment) => (
+            {comments
+              .sort((a, b) => {
+                if (commentSort === 'popular') {
+                  return (b.likes || 0) - (a.likes || 0);
+                }
+                return new Date(b.created_at) - new Date(a.created_at);
+              })
+              .map((comment) => (
               <div key={comment.id} className="comment-item">
                 <div className="comment-header">
                   <span className="comment-author">
@@ -303,6 +520,20 @@ export default function NovelDetail() {
                   </span>
                 </div>
                 <p className="comment-content">{comment.content}</p>
+                <div className="comment-actions">
+                  <button 
+                    className="comment-action-btn"
+                    onClick={() => handleLikeComment(comment.id)}
+                  >
+                    👍 {comment.likes || 0}
+                  </button>
+                  <button 
+                    className="comment-action-btn"
+                    onClick={() => setReplyTo(comment)}
+                  >
+                    💬 回复
+                  </button>
+                </div>
               </div>
             ))}
             {comments.length === 0 && (
@@ -311,8 +542,32 @@ export default function NovelDetail() {
               </div>
             )}
           </div>
+          
+          {/* 回复弹窗 */}
+          {replyTo && (
+            <form className="reply-form" onSubmit={handleReply}>
+              <div className="reply-header">
+                <span>回复 @{replyTo.author}</span>
+                <button type="button" onClick={() => setReplyTo(null)}>取消</button>
+              </div>
+              <textarea
+                className="comment-input"
+                placeholder="写下你的回复..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+              />
+              <button type="submit" className="btn btn-primary btn-sm">
+                发送回复
+              </button>
+            </form>
+          )}
         </div>
       </main>
+      
+      {/* 分享弹窗 */}
+      {showShareModal && (
+        <ShareModal novel={novel} onClose={() => setShowShareModal(false)} />
+      )}
     </div>
   );
 }
