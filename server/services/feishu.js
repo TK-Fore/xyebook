@@ -142,7 +142,9 @@ const mockChapters = {
 
 // 检查飞书客户端是否可用
 function isFeishuConfigured() {
-  return !!(APP_ID && APP_SECRET && NOVELS_TABLE_TOKEN);
+  const result = !!(APP_ID && APP_SECRET && NOVELS_TABLE_TOKEN);
+  console.log('[Feishu] isFeishuConfigured:', result, { APP_ID: !!APP_ID, hasSecret: !!APP_SECRET, hasToken: !!NOVELS_TABLE_TOKEN });
+  return result;
 }
 
 // 从飞书多维表格获取小说列表
