@@ -8,22 +8,24 @@ export default function Reader() {
   const [chapter, setChapter] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  // 阅读模式: 'light' 白天, 'dark' 夜间, 'eye-care' 护眼
+  const [readMode, setReadMode] = useState('light');
   const [fontSize, setFontSize] = useState(18);
   const [showChapters, setShowChapters] = useState(false);
+  const [isSliding, setIsSliding] = useState(false); // 翻页动画状态
 
   // 恢复阅读偏好
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('readerDarkMode');
+    const savedReadMode = localStorage.getItem('readerReadMode');
     const savedFontSize = localStorage.getItem('readerFontSize');
-    if (savedDarkMode) setDarkMode(savedDarkMode === 'true');
+    if (savedReadMode) setReadMode(savedReadMode);
     if (savedFontSize) setFontSize(parseInt(savedFontSize));
   }, []);
 
-  // 切换深色模式时保存
+  // 切换阅读模式时保存
   useEffect(() => {
-    localStorage.setItem('readerDarkMode', darkMode);
-  }, [darkMode]);
+    localStorage.setItem('readerReadMode', readMode);
+  }, [readMode]);
 
   // 切换字体大小时保存
   useEffect(() => {
@@ -73,19 +75,45 @@ export default function Reader() {
   function goToPrevChapter() {
     const index = getCurrentIndex();
     if (index > 0) {
-      navigate(`/read/${novelId}/${chapters[index - 1].id}`);
+      setIsSliding(true);
+      setTimeout(() => {
+        navigate(`/read/${novelId}/${chapters[index - 1].id}`);
+        setIsSliding(false);
+      }, 150);
     }
   }
 
   function goToNextChapter() {
     const index = getCurrentIndex();
     if (index < chapters.length - 1) {
-      navigate(`/read/${novelId}/${chapters[index + 1].id}`);
+      setIsSliding(true);
+      setTimeout(() => {
+        navigate(`/read/${novelId}/${chapters[index + 1].id}`);
+        setIsSliding(false);
+      }, 150);
     }
   }
 
-  function toggleDarkMode() {
-    setDarkMode(!darkMode);
+  function cycleReadMode() {
+    const modes = ['light', 'dark', 'eye-care'];
+    const currentIndex = modes.indexOf(readMode);
+    setReadMode(modes[(currentIndex + 1) % modes.length]);
+  }
+
+  function getModeIcon() {
+    switch (readMode) {
+      case 'dark': return '🌙';
+      case 'eye-care': return '📖';
+      default: return '☀️';
+    }
+  }
+
+  function getModeText() {
+    switch (readMode) {
+      case 'dark': return '夜间';
+      case 'eye-care': return '护眼';
+      default: return '白天';
+    }
   }
 
   function increaseFontSize() {
@@ -109,7 +137,7 @@ export default function Reader() {
   const hasNext = currentIndex < chapters.length - 1;
 
   return (
-    <div className={`reader-page ${darkMode ? 'dark' : ''}`}>
+    <div className={`reader-page ${readMode}`}>
       <nav className="reader-nav">
         <Link to={`/novel/${novelId}`} className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
           ← 返回
@@ -122,11 +150,14 @@ export default function Reader() {
           <button className="control-btn" onClick={decreaseFontSize} title="减小字体">
             A-
           </button>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', minWidth: '24px', textAlign: 'center' }}>
+            {fontSize}
+          </span>
           <button className="control-btn" onClick={increaseFontSize} title="增大字体">
             A+
           </button>
-          <button className="control-btn" onClick={toggleDarkMode} title="切换模式">
-            {darkMode ? '☀️' : '🌙'}
+          <button className="control-btn" onClick={cycleReadMode} title={`当前: ${getModeText()}`}>
+            {getModeIcon()} {getModeText()}
           </button>
         </div>
       </nav>
@@ -139,14 +170,14 @@ export default function Reader() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: darkMode ? '#16213E' : 'white',
+          background: readMode === 'dark' ? '#16213E' : readMode === 'eye-care' ? '#F5F0E6' : 'white',
           overflow: 'auto',
           padding: '1rem',
           zIndex: 50,
           animation: 'fadeIn 0.2s ease-out'
         }}>
           <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', position: 'sticky', top: 0, background: darkMode ? '#16213E' : 'white', padding: '0.5rem 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', position: 'sticky', top: 0, background: readMode === 'dark' ? '#16213E' : readMode === 'eye-care' ? '#F5F0E6' : 'white', padding: '0.5rem 0' }}>
               <h3 style={{ margin: 0 }}>📚 目录</h3>
               <button 
                 onClick={() => setShowChapters(false)} 
@@ -182,14 +213,18 @@ export default function Reader() {
         </div>
       )}
 
-      <div className={`reader-content ${darkMode ? 'dark' : ''}`}>
+      <div className={`reader-content ${readMode === 'dark' ? 'dark' : ''}`} style={{ 
+        opacity: isSliding ? 0.7 : 1,
+        transform: isSliding ? 'translateX(10px)' : 'translateX(0)',
+        transition: 'all 0.15s ease-out'
+      }}>
         <h1 className="chapter-title">{chapter.title}</h1>
         <div 
           className="chapter-text"
           style={{ fontSize: `${fontSize}px`, lineHeight: '2' }}
         >
           {chapter.content ? chapter.content.split('\n').map((paragraph, i) => (
-            <p key={i} style={{ marginBottom: '1.5em' }}>{paragraph}</p>
+            <p key={i} style={{ marginBottom: '1.5em', textIndent: '2em' }}>{paragraph}</p>
           )) : (
             <p style={{ color: '#999', textAlign: 'center' }}>暂无内容</p>
           )}

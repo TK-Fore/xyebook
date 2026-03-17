@@ -2,7 +2,15 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getNovels } from '../services/api';
 
-const categories = ['全部', '都市', '玄幻', '仙侠', '历史', '科幻', '游戏'];
+const categories = [
+  { name: '全部', icon: '📚' },
+  { name: '都市', icon: '🏙️' },
+  { name: '玄幻', icon: '🐉' },
+  { name: '仙侠', icon: '🗡️' },
+  { name: '历史', icon: '🏯' },
+  { name: '科幻', icon: '🚀' },
+  { name: '游戏', icon: '🎮' }
+];
 
 function NovelCard({ novel }) {
   return (
@@ -14,16 +22,21 @@ function NovelCard({ novel }) {
           className="novel-cover"
           loading="lazy"
         />
+        <div className="novel-cover-overlay">
+          <span className="read-btn">开始阅读</span>
+        </div>
+        {novel.status === '已完结' && <span className="novel-badge">完结</span>}
       </div>
       <div className="novel-info">
         <h3 className="novel-title">{novel.title}</h3>
         <p className="novel-author">{novel.author}</p>
         <div className="novel-meta">
           <span className="novel-rating">⭐ {novel.rating || '0.0'}</span>
-          <span className={`novel-status ${novel.status === '已完结' ? 'completed' : ''}`}>
-            {novel.status || '连载中'}
-          </span>
+          <span className="novel-category">{novel.category}</span>
         </div>
+        {novel.description && (
+          <p className="novel-desc-preview">{novel.description.slice(0, 50)}...</p>
+        )}
       </div>
     </Link>
   );
@@ -99,13 +112,23 @@ export default function Home() {
           </button>
           
           <form className="search-box" onSubmit={handleSearch}>
+            <span className="search-icon">🔍</span>
             <input
               type="text"
               className="search-input"
-              placeholder="搜索小说..."
+              placeholder="搜索小说、作者..."
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
             />
+            {keyword && (
+              <button 
+                type="button" 
+                className="search-clear"
+                onClick={() => { setKeyword(''); loadNovels(); }}
+              >
+                ✕
+              </button>
+            )}
           </form>
           
           <nav className={`nav-links ${navOpen ? 'active' : ''}`}>
@@ -135,11 +158,12 @@ export default function Home() {
         <div className="category-tabs">
           {categories.map((cat) => (
             <button
-              key={cat}
-              className={`category-tab ${category === cat ? 'active' : ''}`}
-              onClick={() => handleCategoryClick(cat)}
+              key={cat.name}
+              className={`category-tab ${category === cat.name ? 'active' : ''}`}
+              onClick={() => handleCategoryClick(cat.name)}
             >
-              {cat}
+              <span className="category-icon">{cat.icon}</span>
+              <span>{cat.name}</span>
             </button>
           ))}
         </div>

@@ -13,10 +13,28 @@ export default function NovelDetail() {
   const [commentText, setCommentText] = useState('');
   const [anonymous, setAnonymous] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(false);
+  const [expandedVolumes, setExpandedVolumes] = useState({}); // 卷展开状态
 
   useEffect(() => {
     loadData();
   }, [id]);
+
+  // 按卷分组章节
+  const groupedChapters = chapters.reduce((acc, chapter, index) => {
+    const volume = chapter.volume || '正文';
+    if (!acc[volume]) {
+      acc[volume] = [];
+    }
+    acc[volume].push({ ...chapter, index });
+    return acc;
+  }, {});
+
+  const toggleVolume = (volume) => {
+    setExpandedVolumes(prev => ({
+      ...prev,
+      [volume]: !prev[volume]
+    }));
+  };
 
   async function loadData() {
     setLoading(true);
@@ -175,28 +193,64 @@ export default function NovelDetail() {
 
         <div className="chapter-section">
           <h2 className="section-title">📚 目录 ({chapters.length} 章)</h2>
-          <div className="chapter-list">
-            {chapters.map((chapter, index) => (
-              <Link 
-                key={chapter.id} 
-                to={`/read/${id}/${chapter.id}`}
-                className="chapter-item"
-              >
-                <span>
-                  <span className="chapter-num">第{chapter.chapter_num || index + 1}章</span>
-                  {chapter.title}
-                </span>
-                <span style={{ fontSize: '0.75rem', color: '#95A5A6' }}>
-                  {(chapter.word_count || 0).toLocaleString()}字
-                </span>
-              </Link>
-            ))}
-            {chapters.length === 0 && (
-              <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
-                <p>暂无章节</p>
+          
+          {/* 按卷分组显示 */}
+          {Object.keys(groupedChapters).length > 1 ? (
+            Object.entries(groupedChapters).map(([volume, volChapters]) => (
+              <div key={volume} className="volume-group">
+                <div 
+                  className="volume-header"
+                  onClick={() => toggleVolume(volume)}
+                >
+                  <span className="volume-title">{volume}</span>
+                  <span className="volume-count">({volChapters.length}章)</span>
+                  <span className="volume-toggle">{expandedVolumes[volume] !== false ? '▼' : '▶'}</span>
+                </div>
+                <div className={`volume-chapters ${expandedVolumes[volume] !== false ? 'expanded' : ''}`}>
+                  {volChapters.map((chapter) => (
+                    <Link 
+                      key={chapter.id} 
+                      to={`/read/${id}/${chapter.id}`}
+                      className="chapter-item"
+                    >
+                      <span>
+                        <span className="chapter-num">第{chapter.chapter_num || chapter.index + 1}章</span>
+                        {chapter.title}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: '#95A5A6' }}>
+                        {(chapter.word_count || 0).toLocaleString()}字
+                      </span>
+                    </Link>
+                  ))}
+                </div>
               </div>
-            )}
-          </div>
+            ))
+          ) : (
+            /* 单卷显示 */
+            <div className="chapter-list">
+              {chapters.map((chapter, index) => (
+                <Link 
+                  key={chapter.id} 
+                  to={`/read/${id}/${chapter.id}`}
+                  className="chapter-item"
+                >
+                  <span>
+                    <span className="chapter-num">第{chapter.chapter_num || index + 1}章</span>
+                    {chapter.title}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: '#95A5A6' }}>
+                    {(chapter.word_count || 0).toLocaleString()}字
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+          
+          {chapters.length === 0 && (
+            <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
+              <p>暂无章节</p>
+            </div>
+          )}
         </div>
 
         <div className="comments-section">
