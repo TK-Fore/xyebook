@@ -6,6 +6,8 @@ const APP_ID = process.env.FEISHU_APP_ID || '';
 const APP_SECRET = process.env.FEISHU_APP_SECRET || '';
 const NOVELS_TABLE_TOKEN = process.env.FEISHU_NOVELS_TOKEN || '';
 const CHAPTERS_TABLE_TOKEN = process.env.FEISHU_CHAPTERS_TOKEN || '';
+const NOVELS_TABLE_ID = process.env.FEISHU_NOVELS_TABLE_ID || 'tblnnhIkklTTnSXp';
+const CHAPTERS_TABLE_ID = process.env.FEISHU_CHAPTERS_TABLE_ID || 'tbllU7jO0Vs32uv0';
 
 // 初始化飞书客户端
 let client = null;
@@ -154,7 +156,7 @@ async function getNovelsFromFeishu() {
   try {
     const response = await client.bitable.record.list({
       app_token: NOVELS_TABLE_TOKEN,
-      table_id: 'tblnovels', // 默认表ID，可根据实际情况调整
+      table_id: NOVELS_TABLE_ID, // 默认表ID，可根据实际情况调整
       page_size: 100,
     });
 
@@ -188,7 +190,7 @@ async function getChaptersFromFeishu(novelId) {
   try {
     const response = await client.bitable.record.list({
       app_token: CHAPTERS_TABLE_TOKEN,
-      table_id: 'tblchapters',
+      table_id: CHAPTERS_TABLE_ID,
       filter: JSON.stringify({
         conditions: [{
           field_name: 'novel_id',
@@ -226,7 +228,7 @@ async function getChapterContentFromFeishu(chapterId) {
   try {
     const response = await client.bitable.record.get({
       app_token: CHAPTERS_TABLE_TOKEN,
-      table_id: 'tblchapters',
+      table_id: CHAPTERS_TABLE_ID,
       record_id: chapterId,
     });
 
