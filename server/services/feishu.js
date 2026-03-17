@@ -1,11 +1,11 @@
 // 飞书多维表格服务
 const { Client } = require('@larksuiteoapi/node-sdk');
 
-// 环境变量配置
-const APP_ID = process.env.FEISHU_APP_ID || 'cli_a5a6f4c2b30c900c';
-const APP_SECRET = process.env.FEISHU_APP_SECRET || 'qlYN8Zs8mokq2ksqZs8mokq2ksq';
-const NOVELS_TABLE_TOKEN = process.env.FEISHU_NOVELS_TOKEN || 'S2pcMn2l4a2X8d1s4c5d6f7g8h9';
-const CHAPTERS_TABLE_TOKEN = process.env.FEISHU_CHAPTERS_TOKEN || 'S3qdRs3m5bE9f2t4w6x8y0z2a4b';
+// 环境变量配置（从Vercel环境变量读取）
+const APP_ID = process.env.FEISHU_APP_ID || '';
+const APP_SECRET = process.env.FEISHU_APP_SECRET || '';
+const NOVELS_TABLE_TOKEN = process.env.FEISHU_NOVELS_TOKEN || '';
+const CHAPTERS_TABLE_TOKEN = process.env.FEISHU_CHAPTERS_TOKEN || '';
 
 // 初始化飞书客户端
 let client = null;
@@ -138,7 +138,11 @@ const mockChapters = {
 
 // 检查飞书客户端是否可用
 function isFeishuConfigured() {
-  return client !== null && APP_ID !== 'cli_a5a6f4c2b30c900c';
+  // 检查环境变量是否配置（不是默认值）
+  const hasAppId = process.env.FEISHU_APP_ID && process.env.FEISHU_APP_ID !== 'cli_a5a6f4c2b30c900c';
+  const hasAppSecret = process.env.FEISHU_APP_SECRET && process.env.FEISHU_APP_SECRET !== 'qlYN8Zs8mokq2ksqZs8mokq2ksq';
+  const hasAppToken = process.env.FEISHU_NOVELS_TOKEN;
+  return client !== null && hasAppId && hasAppSecret && hasAppToken;
 }
 
 // 从飞书多维表格获取小说列表
