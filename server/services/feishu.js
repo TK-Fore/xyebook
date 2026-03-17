@@ -287,7 +287,7 @@ async function getNovels(params = {}) {
     );
   }
   
-  return { novels, source: 'mock' };
+  return { novels, source: 'mock', envStatus };
 }
 
 // 获取小说详情
