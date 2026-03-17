@@ -265,10 +265,12 @@ async function getNovels(params = {}) {
           );
         }
         
-        return { novels: result, source: 'feishu' };
+        return { novels: result, source: 'feishu', envStatus };
       }
+      return { novels: mockNovels, source: 'mock', envStatus, note: 'No novels from Feishu' };
     } catch (error) {
       console.error('[Feishu] Error:', error.message, error.stack);
+      return { novels: mockNovels, source: 'mock', envStatus, error: error.message };
     }
   }
   
