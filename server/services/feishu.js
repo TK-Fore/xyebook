@@ -19,15 +19,20 @@ async function getAppAccessToken() {
     return cachedToken;
   }
   
-  const response = await axios.post('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
-    app_id: APP_ID,
-    app_secret: APP_SECRET
-  });
-  
-  if (response.data && response.data.tenant_access_token) {
-    cachedToken = response.data.tenant_access_token;
-    tokenExpire = now + (response.data.expire - 60) * 1000;
-    return cachedToken;
+  try {
+    const response = await axios.post('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
+      app_id: APP_ID,
+      app_secret: APP_SECRET
+    }, { timeout: 10000 });
+    
+    if (response.data && response.data.tenant_access_token) {
+      cachedToken = response.data.tenant_access_token;
+      tokenExpire = now + (response.data.expire - 60) * 1000;
+      return cachedToken;
+    }
+  } catch (e) {
+    console.error('[Feishu] Token error:', e.message, e.response?.data);
+    throw new Error('Failed to get access token: ' + e.message);
   }
   throw new Error('Failed to get access token');
 }
