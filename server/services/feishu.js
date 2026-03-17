@@ -232,10 +232,12 @@ async function getChapterContentFromFeishu(chapterId) {
 // 获取小说列表
 async function getNovels(params = {}) {
   console.log('[Feishu] isFeishuConfigured:', isFeishuConfigured());
+  console.log('[Feishu] ENV:', { APP_ID: !!APP_ID, APP_SECRET: !!APP_SECRET, NOVELS_TABLE_TOKEN: !!NOVELS_TABLE_TOKEN });
   
   if (isFeishuConfigured()) {
     try {
       const novels = await getNovelsFromFeishu();
+      console.log('[Feishu] novels from feishu:', novels.length);
       if (novels.length > 0) {
         let result = [...novels];
         
@@ -254,7 +256,7 @@ async function getNovels(params = {}) {
         return { novels: result, source: 'feishu' };
       }
     } catch (error) {
-      console.warn('飞书数据获取失败:', error.message);
+      console.error('[Feishu] Error:', error.message, error.stack);
     }
   }
   
