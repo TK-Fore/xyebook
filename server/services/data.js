@@ -5,10 +5,6 @@ const localNovels = [
   { id: '2', title: '诡异末世，我靠吹牛无敌了', author: '娱乐小组', cover: 'https://via.placeholder.com/200x280/FF6B6B/ffffff?text=诡异末世', description: '诡异末世降临，主角陈九意外觉醒"吹牛成真系统"，通过吹牛吓退诡异生物，走上逆袭之路。', category: '玄幻', status: '连载中', word_count: 50000, rating: '9.5', views: 10000 }
 ];
 
-const localChapters = [
-  { id: '2-1', novel_id: '2', chapter_number: 1, title: '第一章', content: '主角陈九在废墟中被诡异生物追赶，临死前疯狂吹牛："我乃守夜人组织首领林九座下第一高手！"没想到诡异居然被吓退了，系统觉醒！守夜人邀请他加入...' }
-];
-
 async function getNovels(params = {}) {
   if (supabase.isSupabaseConfigured()) {
     try {
@@ -37,13 +33,37 @@ async function getNovelDetail(id) {
 }
 
 async function getChapters(novelId) {
-  const chapters = localChapters.filter(c => c.novel_id === novelId);
-  return { chapters, source: 'local' };
+  if (supabase.isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase.supabase
+        .from('chapters')
+        .select('*')
+        .eq('novel_id', novelId)
+        .order('chapter_number');
+      if (!error && data && data.length > 0) {
+        return { chapters: data, source: 'supabase' };
+      }
+    } catch (e) {
+      console.log('Chapters error:', e.message);
+    }
+  }
+  return { chapters: [], source: 'local' };
 }
 
 async function getChapterContent(chapterId) {
-  const chapter = localChapters.find(c => c.id === chapterId);
-  return { chapter: chapter || null, source: 'local' };
+  if (supabase.isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase.supabase
+        .from('chapters')
+        .select('*')
+        .eq('id', chapterId)
+        .single();
+      if (!error && data) {
+        return { chapter: data, source: 'supabase' };
+      }
+    } catch (e) {}
+  }
+  return { chapter: null, source: 'local' };
 }
 
 module.exports = { getNovels, getNovelDetail, getChapters, getChapterContent };
