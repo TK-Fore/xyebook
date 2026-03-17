@@ -763,9 +763,15 @@ a {
   transition: background 0.3s;
 }
 
+/* 阅读模式 */
 .reader-page.dark {
   background: #1a1a2e;
   color: #E0E0E0;
+}
+
+.reader-page.eye-care {
+  background: #F5F0E6;
+  color: #5D4E37;
 }
 
 .reader-nav {
@@ -782,6 +788,15 @@ a {
 
 .reader-page.dark .reader-nav {
   background: #16213E;
+}
+
+.reader-page.eye-care .reader-nav {
+  background: #E8DCC8;
+  color: #5D4E37;
+}
+
+.reader-page.eye-care .reader-content.dark {
+  background: #F5F0E6;
 }
 
 .reader-title {

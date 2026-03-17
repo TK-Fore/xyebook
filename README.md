@@ -1,8 +1,21 @@
 # 🐑 小羊书吧
 
-一个优雅的小说阅读网站，基于 React + Node.js + 飞书多维表格构建。
+一个优雅的小说阅读网站，基于 React + Node.js + Supabase 构建。
 
 ![小羊书吧](https://via.placeholder.com/800x400/89CFF0/ffffff?text=小羊书吧)
+
+## 📝 版本更新日志
+
+### v0.1.0 (2026-03-18)
+- ✅ 项目初始化
+- ✅ React + Vite 前端搭建
+- ✅ Node.js + Express 后端
+- ✅ Supabase 数据源配置
+- ✅ 基础小说列表页
+- ✅ 章节阅读功能
+- ⚠️ 飞书数据源（Vercel网络限制已移除）
+
+---
 
 ## ✨ 特性
 

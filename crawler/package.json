@@ -1,0 +1,16 @@
+{
+  "name": "xyebook-crawler",
+  "version": "1.0.0",
+  "description": "小羊书吧爬虫系统",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "crawl": "node src/crawl.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1"
+  }
+}
