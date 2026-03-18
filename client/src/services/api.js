@@ -50,7 +50,7 @@ export async function getChapters(novelId) {
 
 // 获取章节内容
 export async function getChapterContent(chapterId) {
-  const res = await fetch(`/api/chapters/${chapterId}`);
+  const res = await fetch(`/api/novels/chapter/${chapterId}`);
   return res.json();
 }
 
