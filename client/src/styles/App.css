@@ -286,6 +286,7 @@ a {
   transition: var(--transition);
   cursor: pointer;
   position: relative;
+  max-width: 100%;
 }
 
 .novel-card::before {
@@ -476,6 +477,11 @@ a {
   .novel-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
+  }
+  
+  .main-content {
+    padding: 1rem 0.75rem;
+    overflow-x: hidden;
   }
   
   .header {
