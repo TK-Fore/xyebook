@@ -1,15 +1,6 @@
-import { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { getUser } from '../services/api';
+import { Link } from 'react-router-dom';
 
 export default function Login() {
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // 已经是匿名用户，直接跳转到个人中心
-    navigate('/profile');
-  }, []);
-
   return (
     <>
       <header className="header">

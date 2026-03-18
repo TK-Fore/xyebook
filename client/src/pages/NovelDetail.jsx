@@ -409,7 +409,7 @@ export default function NovelDetail() {
                         {readingProgress.chapterId === chapter.id && <span className="reading-badge">📖 阅读中</span>}
                       </span>
                       <span className="chapter-word-count">
-                        {(chapter.word_count || 0).toLocaleString()}字
+                        {chapter.content ? chapter.content.length.toLocaleString() : 0}字
                       </span>
                     </Link>
                   ))}
@@ -430,7 +430,7 @@ export default function NovelDetail() {
                     {readingProgress.chapterId === chapter.id && <span className="reading-badge">📖 阅读中</span>}
                   </span>
                   <span className="chapter-word-count">
-                    {(chapter.word_count || 0).toLocaleString()}字
+                    {chapter.content ? chapter.content.length.toLocaleString() : 0}字
                   </span>
                 </Link>
               ))}
