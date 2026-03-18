@@ -18,13 +18,54 @@
     <link rel="dns-prefetch" href="https://via.placeholder.com">
     <link rel="dns-prefetch" href="https://xyebook.com">
     
+    <!-- 结构化数据 - SEO优化 -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "小羊书吧",
+      "url": "https://xyebook.com/",
+      "description": "优质小说阅读平台，提供海量都市、玄幻、仙侠、历史、科幻等类型小说",
+      "publisher": {
+        "@type": "Organization",
+        "name": "小羊书吧"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://xyebook.com/?keyword={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "小羊书吧",
+      "url": "https://xyebook.com",
+      "logo": "https://xyebook.com/logo.png",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+86-xxx-xxxx-xxxx",
+        "contactType": "customer service"
+      }
+    }
+    </script>
+    
     <!-- 基础 Meta 标签 -->
     <title>小羊书吧 - 优质小说阅读平台</title>
-    <meta name="description" content="小羊书吧提供海量优质小说资源，包含都市、玄幻、仙侠、历史、科幻等多种类型，满足不同读者的阅读需求。" />
-    <meta name="keywords" content="小说,阅读,网络小说,电子书,玄幻小说,都市小说,仙侠小说,免费小说" />
+    <meta name="description" content="小羊书吧提供海量优质小说资源，包含都市、玄幻、仙侠、历史、科幻等多种类型，满足不同读者的阅读需求。新书抢先看，免费阅读！" />
+    <meta name="keywords" content="小说,阅读,网络小说,电子书,玄幻小说,都市小说,仙侠小说,免费小说,在线阅读" />
     <meta name="author" content="小羊书吧" />
     <meta name="robots" content="index, follow" />
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <link rel="canonical" href="https://xyebook.com/" />
+    
+    <!-- 补充 SEO -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="/favicon.svg">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
