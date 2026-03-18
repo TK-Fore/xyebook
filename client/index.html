@@ -52,6 +52,9 @@
     }
     </script>
     
+    <!-- 图片预加载优化 -->
+    <link rel="preload" as="image" href="/favicon.svg">
+    
     <!-- 基础 Meta 标签 -->
     <title>小羊书吧 - 优质小说阅读平台</title>
     <meta name="description" content="小羊书吧提供海量优质小说资源，包含都市、玄幻、仙侠、历史、科幻等多种类型，满足不同读者的阅读需求。新书抢先看，免费阅读！" />
@@ -120,6 +123,24 @@
     
     <!-- 主题色 -->
     <meta name="theme-color" content="#4a90d9" />
+    
+    <!-- 性能监控 (生产环境) -->
+    <script>
+      (function() {
+        'use strict';
+        // 只在生产环境监控
+        if (location.hostname === 'xyebook.com' || location.hostname === 'www.xyebook.com') {
+          window.addEventListener('load', function() {
+            setTimeout(function() {
+              var perfData = window.performance.timing;
+              var pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
+              var ttfb = perfData.responseStart - perfData.navigationStart;
+              console.log('页面加载时间: ' + pageLoadTime + 'ms, TTFB: ' + ttfb + 'ms');
+            }, 0);
+          });
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
