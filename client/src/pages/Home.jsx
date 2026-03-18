@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getNovels, getReadingProgress } from '../services/api';
 import Loading from '../components/Loading';
+import { useDebounce, useClickOutside } from '../hooks/useCommon';
 
 const categories = [
   { name: '全部', icon: '📚' },
@@ -13,6 +14,15 @@ const categories = [
   { name: '游戏', icon: '🎮' }
 ];
 
+// 搜索热词
+const hotKeywords = [
+  { text: '斗罗大陆', icon: '🔥' },
+  { text: '全职高手', icon: '🎮' },
+  { text: '凡人修仙传', icon: '🗡️' },
+  { text: '庆余年', icon: '👑' },
+  { text: '遮天', icon: '🌟' },
+];
+
 // 主题列表
 const themes = [
   { id: 'default', icon: '🐑', name: '清新蓝', class: '' },
@@ -20,17 +30,29 @@ const themes = [
   { id: 'purple', icon: '💜', name: '梦幻紫', class: 'theme-purple' },
   { id: 'green', icon: '🌿', name: '森系绿', class: 'theme-green' },
   { id: 'orange', icon: '🍊', name: '活力橙', class: 'theme-orange' },
+  { id: 'dark', icon: '🌙', name: '夜间', class: 'theme-dark' },
+  { id: 'sepia', icon: '📖', name: '护眼', class: 'theme-sepia' },
 ];
 
 function NovelCard({ novel }) {
+  // 卡片点击反馈
+  const [isPressed, setIsPressed] = useState(false);
+  
   return (
-    <Link to={`/novel/${novel.id}`} className="novel-card">
+    <Link 
+      to={`/novel/${novel.id}`} 
+      className={`novel-card ${isPressed ? 'pressed' : ''}`}
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      onMouseLeave={() => setIsPressed(false)}
+    >
       <div className="novel-cover-wrapper">
         <img 
           src={novel.cover || 'https://via.placeholder.com/200x280/89CFF0/ffffff?text=小羊书吧'} 
           alt={novel.title}
           className="novel-cover"
           loading="lazy"
+          decoding="async"
         />
         <div className="novel-cover-overlay">
           <span className="read-btn">开始阅读</span>
@@ -110,6 +132,14 @@ export default function Home() {
     return localStorage.getItem('xyebook_theme') || 'default';
   });
   const [showThemePanel, setShowThemePanel] = useState(false);
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  
+  // 防抖搜索
+  const debouncedKeyword = useDebounce(keyword, 300);
+  const searchRef = useRef(null);
+  
+  // 点击外部关闭搜索建议
+  useClickOutside(searchRef, () => setShowSearchSuggestions(false));
 
   // 应用主题
   useEffect(() => {
