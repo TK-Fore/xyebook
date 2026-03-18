@@ -9,6 +9,7 @@ const userRoutes = require('./routes/user');
 const commentRoutes = require('./routes/comments');
 const ratingRoutes = require('./routes/ratings');
 const shareRoutes = require('./routes/share');
+const weatherRoutes = require('./routes/weather');
 const { logger, errorHandler, rateLimiter } = require('./middleware');
 
 const app = express();
@@ -46,15 +47,16 @@ app.use('/api/user', userRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/share', shareRoutes);
+app.use('/api/weather', weatherRoutes);
+
+// 健康检查（必须在SPA fallback之前）
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: Date.now() });
+});
 
 // SPA fallback
 app.get('*', (req, res) => {
   res.sendFile(path.join(staticPath, 'index.html'));
-});
-
-// 健康检查
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: Date.now() });
 });
 
 // 全局错误处理（必须放在所有路由之后）
