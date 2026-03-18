@@ -2215,6 +2215,26 @@ button:active,
   }
 }
 
+/* ===================================
+   防止触摸滑动页面错位
+   =================================== */
+.novel-detail-page {
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* 防止触摸时页面整体偏移 */
+.novel-detail-page,
+.reader-page {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* 触摸时禁止页面反弹效果 */
+body {
+  overscroll-behavior: contain;
+}
+
 /* 目录弹窗移动端 */
 .chapter-modal {
   position: fixed;

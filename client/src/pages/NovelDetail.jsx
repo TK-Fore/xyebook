@@ -67,7 +67,10 @@ export default function NovelDetail() {
 
   // 触摸滑动返回
   const handleTouchStart = useCallback((e) => {
-    touchStartX.current = e.touches[0].clientX;
+    // 只在页面顶部区域记录触摸开始位置（避免误触）
+    if (e.touches[0].clientY < 100) {
+      touchStartX.current = e.touches[0].clientX;
+    }
   }, []);
 
   const handleTouchEnd = useCallback((e) => {
@@ -75,9 +78,10 @@ export default function NovelDetail() {
     
     const touchEndX = e.changedTouches[0].clientX;
     const deltaX = touchStartX.current - touchEndX;
+    const deltaY = Math.abs(e.changedTouches[0].clientY - e.touches[0].clientY);
 
-    // 右滑超过阈值返回首页
-    if (deltaX < -50) {
+    // 右滑超过阈值且垂直移动较小时返回首页（避免误触）
+    if (deltaX < -50 && deltaY < 50) {
       navigate('/');
     }
 
