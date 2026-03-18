@@ -31,9 +31,38 @@
   --duration-normal: 0.3s;
   --duration-slow: 0.5s;
   
+  /* 阅读体验变量 */
+  --reader-font-size: 18px;
+  --reader-line-height: 1.8;
+  --reader-spacing: 1.5em;
+  
   /* 字体 */
   --font-sans: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-serif: "LXGW WenKai", "Noto Serif SC", "Songti SC", serif;
+}
+
+/* 夜间模式 */
+[data-theme="dark"],
+.theme-dark {
+  --bg-main: #1a1a2e;
+  --bg-card: #16213e;
+  --bg-gradient: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+  --text-primary: #e8e8e8;
+  --text-secondary: #a0a0a0;
+  --text-light: #707070;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* 护眼模式（深色但不黑） */
+[data-theme="sepia"],
+.theme-sepia {
+  --bg-main: #f4ecd8;
+  --bg-card: #faf6ed;
+  --bg-gradient: linear-gradient(135deg, #faf6ed 0%, #f4ecd8 100%);
+  --text-primary: #5c4b37;
+  --text-secondary: #8b7355;
+  --text-light: #a08060;
 }
 
 /* 全局动画定义 */
@@ -1442,6 +1471,9 @@ a {
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
+  /* 使用CSS变量控制阅读体验 */
+  font-size: var(--reader-font-size);
+  line-height: var(--reader-line-height);
 }
 
 .chapter-title {
@@ -1452,6 +1484,9 @@ a {
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--primary-light);
   color: var(--text-primary);
+  /* 标题优化 */
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .chapter-text {
@@ -1460,6 +1495,20 @@ a {
   font-family: var(--font-serif);
   text-align: justify;
   color: var(--text-primary);
+  /* 段落间距优化 */
+  text-indent: 2em;
+  /* 词间距优化中文阅读 */
+  word-spacing: 0.1em;
+  /* 改善文字渲染 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* 段落之间间距 */
+  margin-bottom: var(--reader-spacing);
+}
+
+/* 段落首行不缩进特殊情况处理 */
+.chapter-text p:first-child {
+  text-indent: 0;
 }
 
 .reader-page.dark .chapter-text {
