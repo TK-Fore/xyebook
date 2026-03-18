@@ -12,14 +12,6 @@
       "dest": "/server/index.js"
     },
     {
-      "src": "/sitemap.xml",
-      "dest": "/server/index.js"
-    },
-    {
-      "src": "/robots.txt",
-      "dest": "/client/dist/robots.txt"
-    },
-    {
       "src": "/(.*)",
       "dest": "/server/index.js"
     }

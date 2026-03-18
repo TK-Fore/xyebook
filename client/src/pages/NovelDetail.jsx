@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getNovelDetail, getChapters, addFavorite, removeFavorite, getComments, addComment, isLoggedIn, addRating, getNovelRating, likeComment, getShareInfo } from '../services/api';
+import ShareModal from '../components/ShareModal';
+import Loading from '../components/Loading';
+import { getReadingProgress } from '../utils/theme';
 
 // 星星评分组件
 function StarRating({ rating, onRate, readonly = false, size = 'normal' }) {
@@ -23,63 +26,6 @@ function StarRating({ rating, onRate, readonly = false, size = 'normal' }) {
   );
 }
 
-// 分享弹窗组件
-function ShareModal({ novel, onClose }) {
-  const [copied, setCopied] = useState(false);
-  const shareUrl = `${window.location.origin}/novel/${novel.id}`;
-  
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (e) {
-      // 兼容旧浏览器
-      const input = document.createElement('input');
-      input.value = shareUrl;
-      document.body.appendChild(input);
-      input.select();
-      document.execCommand('copy');
-      document.body.removeChild(input);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-  
-  const shareToWechat = () => {
-    // 生成微信分享二维码链接（需要实际二维码API）
-    alert('请使用微信扫一扫分享');
-  };
-  
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content share-modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>分享 "{novel.title}"</h3>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-        <div className="share-options">
-          <button className="share-btn" onClick={handleCopy}>
-            <span className="share-icon">🔗</span>
-            <span>{copied ? '已复制!' : '复制链接'}</span>
-          </button>
-          <button className="share-btn" onClick={shareToWechat}>
-            <span className="share-icon">💬</span>
-            <span>微信分享</span>
-          </button>
-        </div>
-        <div className="share-preview">
-          <img src={novel.cover} alt={novel.title} className="share-cover" />
-          <div className="share-info">
-            <h4>{novel.title}</h4>
-            <p>{novel.author}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function NovelDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -98,6 +44,9 @@ export default function NovelDetail() {
   const [avgRating, setAvgRating] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
   const [hasRated, setHasRated] = useState(false);
+  
+  // 阅读进度状态
+  const [readingProgress, setReadingProgress] = useState({ chapterId: null, progress: 0, currentChapter: 0, totalChapters: 0 });
   
   // 评论排序
   const [commentSort, setCommentSort] = useState('latest'); // latest or popular
@@ -183,6 +132,10 @@ export default function NovelDetail() {
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         setIsFavorite(favorites.includes(id));
       }
+      
+      // 加载阅读进度
+      const progress = getReadingProgress(id);
+      setReadingProgress(progress);
     } catch (error) {
       console.error('加载失败:', error);
     }
@@ -270,6 +223,15 @@ export default function NovelDetail() {
 
   function handleRead() {
     if (chapters.length > 0) {
+      // 如果有阅读进度，从上次阅读的章节继续
+      if (readingProgress.chapterId) {
+        const chapter = chapters.find(c => c.id === readingProgress.chapterId);
+        if (chapter) {
+          navigate(`/read/${id}/${chapter.id}`);
+          return;
+        }
+      }
+      // 否则从第一章开始
       navigate(`/read/${id}/${chapters[0].id}`);
     }
   }
@@ -374,9 +336,26 @@ export default function NovelDetail() {
               </div>
             </div>
             <p className="novel-desc">{novel.description || '暂无简介'}</p>
+            
+            {/* 阅读进度条 */}
+            {readingProgress.progress > 0 && (
+              <div className="reading-progress-section">
+                <div className="progress-info">
+                  <span>📖 已阅读 {readingProgress.currentChapter}/{readingProgress.totalChapters} 章</span>
+                  <span>{readingProgress.progress}%</span>
+                </div>
+                <div className="progress-bar-bg">
+                  <div 
+                    className="progress-bar-fill" 
+                    style={{ width: `${readingProgress.progress}%` }} 
+                  />
+                </div>
+              </div>
+            )}
+            
             <div className="action-buttons">
               <button className="btn btn-primary" onClick={handleRead}>
-                📖 开始阅读
+                {readingProgress.progress > 0 ? `📖 继续阅读 (${readingProgress.progress}%)` : '📖 开始阅读'}
               </button>
               <button 
                 className={`btn ${isFavorite ? 'btn-accent' : 'btn-outline'}`}
@@ -418,11 +397,12 @@ export default function NovelDetail() {
                     <Link 
                       key={chapter.id} 
                       to={`/read/${id}/${chapter.id}`}
-                      className="chapter-item"
+                      className={`chapter-item ${readingProgress.chapterId === chapter.id ? 'current' : ''}`}
                     >
                       <span>
                         <span className="chapter-num">第{chapter.chapter_num || chapter.index + 1}章</span>
                         {chapter.title}
+                        {readingProgress.chapterId === chapter.id && <span className="reading-badge">📖 阅读中</span>}
                       </span>
                       <span className="chapter-word-count">
                         {(chapter.word_count || 0).toLocaleString()}字
@@ -438,11 +418,12 @@ export default function NovelDetail() {
                 <Link 
                   key={chapter.id} 
                   to={`/read/${id}/${chapter.id}`}
-                  className="chapter-item"
+                  className={`chapter-item ${readingProgress.chapterId === chapter.id ? 'current' : ''}`}
                 >
                   <span>
                     <span className="chapter-num">第{chapter.chapter_num || index + 1}章</span>
                     {chapter.title}
+                    {readingProgress.chapterId === chapter.id && <span className="reading-badge">📖 阅读中</span>}
                   </span>
                   <span className="chapter-word-count">
                     {(chapter.word_count || 0).toLocaleString()}字

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getNovels, getReadingProgress } from '../services/api';
+import Loading from '../components/Loading';
 
 const categories = [
   { name: '全部', icon: '📚' },

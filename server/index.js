@@ -27,8 +27,15 @@ app.use(logger);
 app.use(cors());
 app.use(express.json());
 
-// 静态文件服务（Vercel用/client/dist，本地用../client/dist）
-const staticPath = path.join(__dirname, '..', 'client', 'dist');
+// 静态文件路径处理 - Vercel 和本地兼容
+let staticPath;
+if (process.env.VERCEL) {
+  // Vercel 环境
+  staticPath = path.join(process.cwd(), 'client', 'dist');
+} else {
+  // 本地环境
+  staticPath = path.join(__dirname, '..', 'client', 'dist');
+}
 app.use(express.static(staticPath));
 
 // 路由

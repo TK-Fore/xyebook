@@ -1022,6 +1022,24 @@ a {
   margin-right: 0.5rem;
 }
 
+.chapter-item.current {
+  background: var(--primary-lighter) !important;
+  border-color: var(--primary) !important;
+}
+
+.chapter-item.current .chapter-num {
+  color: var(--primary-dark);
+}
+
+.reading-badge {
+  margin-left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  background: var(--primary);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.7rem;
+}
+
 @media (max-width: 640px) {
   .chapter-list {
     grid-template-columns: 1fr;

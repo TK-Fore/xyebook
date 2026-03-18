@@ -1,29 +1,70 @@
-// 本地小说数据（部署到Vercel用）
-const localNovels = [
-  {
-    id: '1',
-    title: '全职高手',
-    author: '蝴蝶蓝',
-    cover: 'https://via.placeholder.com/200x280/89CFF0/ffffff?text=全职高手',
-    description: '游戏荣耀教材级作品，讲述职业电竞选手叶修的传奇故事。',
-    category: '游戏',
-    status: '已完结',
-    word_count: 5000000,
-    rating: '9.2',
-    views: 1500000
-  },
-  {
-    id: '2',
-    title: '诡异末世，我靠吹牛无敌了',
-    author: '娱乐小组',
-    cover: 'https://via.placeholder.com/200x280/FF6B6B/ffffff?text=诡异末世',
-    description: '末世降临，诡异生物入侵，主角靠吹牛成为最强王者！',
-    category: '玄幻',
-    status: '连载中',
-    word_count: 50000,
-    rating: '9.5',
-    views: 10000
-  }
+// 模拟采集的小说数据 - 50+本热门小说
+const mockNovels = [
+  { id: '1', title: '全职高手', author: '蝴蝶蓝', cover: 'https://imgproxy.picoapp.xyz/novel/1.jpg', description: '游戏荣耀教材级作品，讲述职业电竞选手叶修的传奇故事。', category: '游戏', status: '已完结', word_count: 5350000, rating: '9.2', views: 1500000 },
+  { id: '2', title: '诡异末世，我靠吹牛无敌了', author: '娱乐小组', cover: 'https://imgproxy.picoapp.xyz/novel/2.jpg', description: '末世降临，诡异生物入侵，主角靠吹牛成为最强王者！', category: '玄幻', status: '连载中', word_count: 500000, rating: '9.5', views: 100000 },
+  { id: '3', title: '道诡异仙', author: '狐尾的笔', cover: 'https://imgproxy.picoapp.xyz/novel/3.jpg', description: '精神分裂主角的诡异修仙之旅，真假难辨的世界。', category: '玄幻', status: '已完结', word_count: 3800000, rating: '9.6', views: 980000 },
+  { id: '4', title: '深海余烬', author: '中二的菌子', cover: 'https://imgproxy.picoapp.xyz/novel/4.jpg', description: '失乡号船长在神秘海域的奇妙冒险。', category: '奇幻', status: '已完结', word_count: 3200000, rating: '9.4', views: 850000 },
+  { id: '5', title: '这游戏也太真实了', author: '咸鱼行岸', cover: 'https://imgproxy.picoapp.xyz/novel/5.jpg', description: '穿越到游戏世界，第四天灾降临！', category: '游戏', status: '连载中', word_count: 2800000, rating: '9.3', views: 720000 },
+  { id: '6', title: '我本疯狂', author: ' pies', cover: 'https://imgproxy.picoapp.xyz/novel/6.jpg', description: '一代传奇枭雄的崛起之路。', category: '都市', status: '已完结', word_count: 4500000, rating: '9.1', views: 680000 },
+  { id: '7', title: '灵境行者', author: '卖报小郎君', cover: 'https://imgproxy.picoapp.xyz/novel/7.jpg', description: '灵境开启，，各大势力逐鹿天下。', category: '都市', status: '已完结', word_count: 4100000, rating: '9.2', views: 920000 },
+  { id: '8', title: '夜的命名术', author: '会说话的肘子', cover: 'https://imgproxy.picoapp.xyz/novel/8.jpg', description: '赛博朋克世界的时间囚徒。', category: '都市', status: '已完结', word_count: 3900000, rating: '9.3', views: 1100000 },
+  { id: '9', title: '我在精神病院学斩神', author: '三九音域', cover: 'https://imgproxy.picoapp.xyz/novel/9.jpg', description: '精神病院中隐藏的超级强者。', category: '都市', status: '已完结', word_count: 3600000, rating: '9.4', views: 1250000 },
+  { id: '10', title: '星穹铁道', author: '符箓', cover: 'https://imgproxy.picoapp.xyz/novel/10.jpg', description: '崩坏星穹铁道同名游戏世界观小说。', category: '游戏', status: '连载中', word_count: 1800000, rating: '9.1', views: 550000 },
+  { id: '11', title: '庆余年', author: '猫腻', cover: 'https://imgproxy.picoapp.xyz/novel/11.jpg', description: '穿越到庆国的一生，权谋与情感的交织。', category: '历史', status: '已完结', word_count: 3700000, rating: '9.5', views: 1800000 },
+  { id: '12', title: '间客', author: '猫腻', cover: 'https://imgproxy.picoapp.xyz/novel/12.jpg', description: '地球上两个帝国的博弈与一个小人物的崛起。', category: '科幻', status: '已完结', word_count: 4100000, rating: '9.4', views: 950000 },
+  { id: '13', title: '将夜', author: '猫腻', cover: 'https://imgproxy.picoapp.xyz/novel/13.jpg', description: '十五年命定宿命的战争。', category: '玄幻', status: '已完结', word_count: 4800000, rating: '9.3', views: 1650000 },
+  { id: '14', title: '择天记', author: '猫腻', cover: 'https://imgproxy.picoapp.xyz/novel/14.jpg', description: '逆天改命，资质少年陈长生的故事。', category: '玄幻', status: '已完结', word_count: 4400000, rating: '9.2', views: 1420000 },
+  { id: '15', title: '大道朝天', author: '猫腻', cover: 'https://imgproxy.picoapp.xyz/novel/15.jpg', description: '井九的修仙之路。', category: '仙侠', status: '已完结', word_count: 3500000, rating: '9.3', views: 880000 },
+  { id: '16', title: '剑来', author: '烽火戏诸侯', cover: 'https://imgproxy.picoapp.xyz/novel/16.jpg', description: '礼尚往来，讲述一个少年成长的故事。', category: '仙侠', status: '已完结', word_count: 5600000, rating: '9.6', views: 2100000 },
+  { id: '17', title: '雪中悍刀行', author: '烽火戏诸侯', cover: 'https://imgproxy.picoapp.xyz/novel/17.jpg', description: '北凉世子徐凤年的江湖与庙堂。', category: '武侠', status: '已完结', word_count: 5200000, rating: '9.5', views: 1950000 },
+  { id: '18', title: '天神殿', author: '燕北', cover: 'https://imgproxy.picoapp.xyz/novel/18.jpg', description: '一级战神回归都市。', category: '都市', status: '连载中', word_count: 4200000, rating: '9.0', views: 780000 },
+  { id: '19', title: '龙族', author: '江南', cover: 'https://imgproxy.picoapp.xyz/novel/19.jpg', description: '龙族复苏，少年屠龙的故事。', category: '奇幻', status: '连载中', word_count: 2800000, rating: '9.4', views: 1580000 },
+  { id: '20', title: '我在精神病院学斩神', author: '三九音域', cover: 'https://imgproxy.picoapp.xyz/novel/20.jpg', description: 'jkjk的斩神之路。', category: '都市', status: '已完结', word_count: 3600000, rating: '9.4', views: 1250000 },
+  { id: '21', title: '宿命之环', author: '爱潜水的乌贼', cover: 'https://imgproxy.picoapp.xyz/novel/21.jpg', description: '诡秘之主第二部。', category: '玄幻', status: '连载中', word_count: 2200000, rating: '9.3', views: 890000 },
+  { id: '22', title: '深空彼岸', author: '辰东', cover: 'https://imgproxy.picoapp.xyz/novel/22.jpg', description: '新宇宙的诞生与旧宇宙的终结。', category: '科幻', status: '已完结', word_count: 4000000, rating: '9.2', views: 1120000 },
+  { id: '23', title: '圣墟', author: '辰东', cover: 'https://imgproxy.picoapp.xyz/novel/23.jpg', description: '楚风的无敌进化之路。', category: '玄幻', status: '已完结', word_count: 4500000, rating: '9.1', views: 1680000 },
+  { id: '24', title: '完美世界', author: '辰东', cover: 'https://imgproxy.picoapp.xyz/novel/24.jpg', description: '石昊的独断万古之路。', category: '玄幻', status: '已完结', word_count: 5200000, rating: '9.4', views: 2050000 },
+  { id: '25', title: '遮天', author: '辰东', cover: 'https://imgproxy.picoapp.xyz/novel/25.jpg', description: '叶天帝的传奇。', category: '仙侠', status: '已完结', word_count: 4800000, rating: '9.5', views: 1920000 },
+  { id: '26', title: '神墓', author: '辰东', cover: 'https://imgproxy.picoapp.xyz/novel/26.jpg', description: '辰南的逆天改命。', category: '玄幻', status: '已完结', word_count: 3900000, rating: '9.3', views: 1450000 },
+  { id: '27', title: '不死不灭', author: '辰东', cover: 'https://imgproxy.picoapp.xyz/novel/27.jpg', description: '辰东处女作。', category: '玄幻', status: '已完结', word_count: 1800000, rating: '8.8', views: 650000 },
+  { id: '28', title: '长夜余火', author: '爱潜水的乌贼', cover: 'https://imgproxy.picoapp.xyz/novel/28.jpg', description: '灰土上的新冒险。', category: '科幻', status: '已完结', word_count: 2400000, rating: '9.2', views: 720000 },
+  { id: '29', title: '奥术神座', author: '爱潜水的乌贼', cover: 'https://imgproxy.picoapp.xyz/novel/29.jpg', description: '魔法与科学的结合。', category: '奇幻', status: '已完结', word_count: 3100000, rating: '9.4', views: 980000 },
+  { id: '30', title: '一世之尊', author: '爱潜水的乌贼', cover: 'https://imgproxy.picoapp.xyz/novel/30.jpg', description: '诸天万界，我为道祖。', category: '仙侠', status: '已完结', word_count: 3800000, rating: '9.5', views: 1150000 },
+  { id: '31', title: '灭运图录', author: '爱潜水的乌贼', cover: 'https://imgproxy.picoapp.xyz/novel/31.jpg', description: '石道人的修仙之路。', category: '仙侠', status: '已完结', word_count: 2200000, rating: '9.2', views: 680000 },
+  { id: '32', title: '左道倾天', author: '风凌天下', cover: 'https://imgproxy.picoapp.xyz/novel/32.jpg', description: '左小多的成长之路。', category: '玄幻', status: '已完结', word_count: 4100000, rating: '9.1', views: 820000 },
+  { id: '33', title: '傲世九重天', author: '风凌天下', cover: 'https://imgproxy.picoapp.xyz/novel/33.jpg', description: '楚阳的九重天大陆。', category: '玄幻', status: '已完结', word_count: 4400000, rating: '9.2', views: 950000 },
+  { id: '34', title: '天醒之路', author: '蝴蝶蓝', cover: 'https://imgproxy.picoapp.xyz/novel/34.jpg', description: '秦桑的摘风英雄之路。', category: '玄幻', status: '已完结', word_count: 3500000, rating: '9.1', views: 720000 },
+  { id: '35', title: '王者时刻', author: '蝴蝶蓝', cover: 'https://imgproxy.picoapp.xyz/novel/35.jpg', description: '王者峡谷的全新故事。', category: '游戏', status: '已完结', word_count: 1800000, rating: '8.9', views: 480000 },
+  { id: '36', title: '平天策', author: '无罪', cover: 'https://imgproxy.picoapp.xyz/novel/36.jpg', description: '魏十七的修仙之旅。', category: '仙侠', status: '已完结', word_count: 2800000, rating: '9.2', views: 650000 },
+  { id: '37', title: '仙逆', author: '耳根', cover: 'https://imgproxy.picoapp.xyz/novel/37.jpg', description: '王林逆天修真的故事。', category: '仙侠', status: '已完结', word_count: 4500000, rating: '9.5', views: 1780000 },
+  { id: '38', title: '求魔', author: '耳根', cover: 'https://imgproxy.picoapp.xyz/novel/38.jpg', description: '苏铭的求魔之路。', category: '仙侠', status: '已完结', word_count: 3800000, rating: '9.3', views: 1120000 },
+  { id: '39', title: '我欲封天', author: '耳根', cover: 'https://imgproxy.picoapp.xyz/novel/39.jpg', description: '孟浩的封天之路。', category: '仙侠', status: '已完结', word_count: 4200000, rating: '9.4', views: 1350000 },
+  { id: '40', title: '三寸人间', author: '耳根', cover: 'https://imgproxy.picoapp.xyz/novel/40.jpg', description: '王宝乐的星空之旅。', category: '仙侠', status: '已完结', word_count: 3600000, rating: '9.2', views: 920000 },
+  { id: '41', title: '大圣传', author: '说梦者', cover: 'https://imgproxy.picoapp.xyz/novel/41.jpg', description: '齐天大圣的传奇。', category: '仙侠', status: '连载中', word_count: 2800000, rating: '9.3', views: 780000 },
+  { id: '42', title: '掠天记', author: '黑山老鬼', cover: 'https://imgproxy.picoapp.xyz/novel/42.jpg', description: '方行的大道之争。', category: '仙侠', status: '已完结', word_count: 3200000, rating: '9.1', views: 680000 },
+  { id: '43', title: '大道争锋', author: '误道者', cover: 'https://imgproxy.picoapp.xyz/novel/43.jpg', description: '张三的修道之路。', category: '仙侠', status: '已完结', word_count: 5800000, rating: '9.4', views: 1050000 },
+  { id: '44', title: '拜见教主大人', author: '封七夜', cover: 'https://imgproxy.picoapp.xyz/novel/44.jpg', description: '穿越者的江湖故事。', category: '武侠', status: '已完结', word_count: 2400000, rating: '9.2', views: 620000 },
+  { id: '45', title: '诸天投影', author: '裴屠狗', cover: 'https://imgproxy.picoapp.xyz/novel/45.jpg', description: '顾小满的诸天之旅。', category: '诸天', status: '已完结', word_count: 3100000, rating: '9.1', views: 550000 },
+  { id: '46', title: '永恒国度', author: '孤独漂流', cover: 'https://imgproxy.picoapp.xyz/novel/46.jpg', description: '游戏异界类作品。', category: '游戏', status: '已完结', word_count: 4200000, rating: '9.0', views: 680000 },
+  { id: '47', title: '独步天下', author: '宅猪', cover: 'https://imgproxy.picoapp.xyz/novel/47.jpg', description: '叶旭的帝落之路。', category: '仙侠', status: '已完结', word_count: 3500000, rating: '9.2', views: 820000 },
+  { id: '48', title: '人道至尊', author: '宅猪', cover: 'https://imgproxy.picoapp.xyz/novel/48.jpg', description: '钟岳的崛起之路。', category: '玄幻', status: '已完结', word_count: 3800000, rating: '9.3', views: 950000 },
+  { id: '49', title: '牧神记', author: '宅猪', cover: 'https://imgproxy.picoapp.xyz/novel/49.jpg', description: '秦牧的变法之路。', category: '玄幻', status: '已完结', word_count: 4400000, rating: '9.4', views: 1280000 },
+  { id: '50', title: '临渊行', author: '宅猪', cover: 'https://imgproxy.picoapp.xyz/novel/50.jpg', description: '苏云的成圣之路。', category: '仙侠', status: '已完结', word_count: 3900000, rating: '9.3', views: 920000 },
+  { id: '51', title: '元尊', author: '天蚕土豆', cover: 'https://imgproxy.picoapp.xyz/novel/51.jpg', description: '周元的祖龙之路。', category: '玄幻', status: '已完结', word_count: 4100000, rating: '9.1', views: 1450000 },
+  { id: '52', title: '斗破苍穹', author: '天蚕土豆', cover: 'https://imgproxy.picoapp.xyz/novel/52.jpg', description: '萧炎的斗气大陆。', category: '玄幻', status: '已完结', word_count: 5200000, rating: '9.3', views: 2580000 },
+  { id: '53', title: '大主宰', author: '天蚕土豆', cover: 'https://imgproxy.picoapp.xyz/novel/53.jpg', description: '牧尘的大千世界。', category: '玄幻', status: '已完结', word_count: 4800000, rating: '9.2', views: 1820000 },
+  { id: '54', title: '万相之王', author: '天蚕土豆', cover: 'https://imgproxy.picoapp.xyz/novel/54.jpg', description: '李洛的水相之路。', category: '玄幻', status: '连载中', word_count: 2900000, rating: '9.2', views: 1100000 },
+  { id: '55', title: '武动乾坤', author: '天蚕土豆', cover: 'https://imgproxy.picoapp.xyz/novel/55.jpg', description: '林动的符祖之路。', category: '玄幻', status: '已完结', word_count: 4400000, rating: '9.2', views: 1650000 },
+  { id: '56', title: '凡人修仙传', author: '忘语', cover: 'https://imgproxy.picoapp.xyz/novel/56.jpg', description: '韩立修仙传。', category: '仙侠', status: '已完结', word_count: 5600000, rating: '9.6', views: 2680000 },
+  { id: '57', title: '魔天记', author: '忘语', cover: 'https://imgproxy.picoapp.xyz/novel/57.jpg', description: '柳鸣的仙途。', category: '仙侠', status: '已完结', word_count: 3200000, rating: '9.2', views: 850000 },
+  { id: '58', title: '仙逆', author: '耳根', cover: 'https://imgproxy.picoapp.xyz/novel/58.jpg', description: '王林的逆天之旅。', category: '仙侠', status: '已完结', word_count: 4500000, rating: '9.5', views: 1780000 }
 ];
 
-module.exports = localNovels;
+// 为每本书生成一个更真实的占位封面
+const novelsWithCovers = mockNovels.map((novel, index) => ({
+  ...novel,
+  cover: `https://picsum.photos/seed/${novel.id}/200/280`,
+  last_updated: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+}));
+
+module.exports = novelsWithCovers;

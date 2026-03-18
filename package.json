@@ -8,7 +8,7 @@
     "client": "cd client && npm run dev",
     "build": "cd client && npm run build",
     "start": "NODE_ENV=production node server/index.js",
-    "vercel-build": "npm install --prefix client && npm run build"
+    "vercel-build": "npm install --prefix client --legacy-peer-deps && npm run build"
   },
   "dependencies": {
     "@larksuiteoapi/node-sdk": "^1.59.0",
