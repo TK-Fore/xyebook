@@ -1,5 +1,10 @@
-// API服务 - 对接飞书多维表格 + 本地存储用户系统
-const API_BASE = ''; // Vercel部署时会自动设置
+/**
+ * API服务 - 对接飞书多维表格 + 本地存储用户系统
+ * 所有API调用都经过 Vercel 部署的 serverless 函数
+ */
+
+// API基础路径 - Vercel部署时会自动设置
+const API_BASE = '';
 
 // 导入用户服务
 import { 

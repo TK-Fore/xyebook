@@ -14,10 +14,7 @@
   animation: fadeIn 0.2s ease-out;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+/* fadeIn 动画已在 App.css 中定义，此处引用即可 */
 
 .share-modal {
   background: white;

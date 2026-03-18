@@ -1,5 +1,8 @@
-// 用户服务 - 基于localStorage的本地存储
-// 支持匿名用户，无需注册
+/**
+ * 用户服务 - 基于localStorage的本地存储
+ * 支持匿名用户，无需注册
+ * 数据存储在浏览器本地，保护用户隐私
+ */
 
 const STORAGE_KEYS = {
   USER: 'xyebook_user',
