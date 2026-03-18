@@ -24,6 +24,9 @@ const API_BASE = {
   // 微博无法接入
 };
 
+// 代理配置
+const PROXY_URL = process.env.HTTPS_PROXY || process.env.HTTP_PROXY || 'http://127.0.0.1:7897';
+
 /**
  * 获取知乎热榜
  * API: https://api.zhihu.com/topstory/hot-lists/total?limit=10
@@ -200,33 +203,34 @@ async function getWeiboHot() {
 
 /**
  * 获取谷歌趋势热搜
- * ⚠️ 需要特殊处理
+ * 使用代理访问
  * 
- * Google Trends 没有公开的免费 API，官方 API 需要 Google 账户
- * 可选方案:
- * 1. 使用第三方服务 (如 SerpAPI, ScrapingDog 等)
- * 2. 使用 Playwright/Puppeteer 模拟浏览器
- * 3. 使用代理访问官方页面
- * 
- * 当前状态: 页面可访问但返回数据需要 JavaScript 渲染
+ * 代理配置: HTTP_PROXY / HTTPS_PROXY 环境变量
  */
 async function getGoogleTrends(geo = 'US') {
+  const axios = require('axios');
+  
   // 尝试 Google Trends API (需要代理)
   const url = `https://trends.google.com/trends/api/dailytrends?hl=zh-CN&tz=-480&geo=${geo}`;
   
   try {
-    const response = await fetch(url, {
+    const response = await axios.get(url, {
+      proxy: {
+        host: '127.0.0.1',
+        port: 7897,
+        protocol: 'http'
+      },
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/json',
       }
     });
     
-    if (!response.ok) {
+    if (response.status !== 200) {
       throw new Error(`HTTP ${response.status}`);
     }
     
-    const text = await response.text();
+    const text = response.data;
     // Google API 返回格式: )]}' \n <JSON>
     const jsonStr = text.replace(/^\)\]\}\'\s*/, '');
     const data = JSON.parse(jsonStr);
