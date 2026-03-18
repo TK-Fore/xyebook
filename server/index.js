@@ -30,6 +30,18 @@ app.use(logger);
 app.use(cors());
 app.use(express.json());
 
+// 安全响应头
+app.use((req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-Frame-Options', 'DENY');
+  res.set('X-XSS-Protection', '1; mode=block');
+  // 缓存控制 - API默认不缓存，静态资源由前端控制
+  if (req.path.startsWith('/api/')) {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  }
+  next();
+});
+
 // 静态文件路径处理 - Vercel 和本地兼容
 let staticPath;
 if (process.env.VERCEL) {

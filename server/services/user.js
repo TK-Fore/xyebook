@@ -1,12 +1,14 @@
 // 用户服务
-const users = new Map(); // 内存存储，生产环境应该用数据库
+// 注意：当前使用内存存储，生产环境应使用数据库 + bcrypt 加密
+const users = new Map();
 
 // 默认用户数据（演示用）
+// ⚠️ 安全警告：密码应以加密方式存储，这里仅用于演示
 users.set('test', {
   id: '1',
   username: 'test',
   email: 'test@example.com',
-  password: '123456', // 实际应该加密存储
+  password: '123456', // TODO: 生产环境使用 bcrypt 加密
   favorites: [],
   history: []
 });

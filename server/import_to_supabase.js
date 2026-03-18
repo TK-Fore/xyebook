@@ -10,13 +10,18 @@ const supabase = createClient(
 
 const novelsPath = '/Users/qone/.openclaw/workspace/projects/xyebook/小说';
 
-// 小说配置
+// 小说配置 - 10部小说
 const novelsConfig = [
-  { category: '玄幻', title: '太古剑尊', author: '剑尊', description: '太古剑体觉醒，万古第一剑尊的崛起之路', folder: '玄幻' },
-  { category: '仙侠', title: '仙途逆旅', author: '仙途', description: '仙途逆旅，凡人修仙问道长生', folder: '仙侠' },
-  { category: '都市', title: '都市狂少', author: '狂少', description: '都市狂少，纵横花都的传奇人生', folder: '都市' },
-  { category: '重生', title: '重生2008', author: '重生', description: '重生2008，开启不一样的人生', folder: '重生' },
-  { category: '系统', title: '最强系统', author: '系统', description: '最强系统加持，成就无上霸主', folder: '系统' }
+  { category: '玄幻', title: '逆天仙尊', author: '仙尊', description: '逆天崛起，成就无上仙尊之路', folder: '玄幻修仙/逆天仙尊' },
+  { category: '玄幻', title: '凡尘仙路', author: '仙路', description: '凡尘之中，求仙问道', folder: '玄幻修仙/凡尘仙路' },
+  { category: '都市', title: '都市狂少', author: '狂少', description: '都市狂少，纵横花都的传奇人生', folder: '都市/都市狂少' },
+  { category: '都市', title: '王者归来', author: '王者', description: '王者的荣耀，归来之时', folder: '都市/王者归来' },
+  { category: '重生', title: '重生2008', author: '重生', description: '重生2008，开启不一样的人生', folder: '重生/重生2008' },
+  { category: '重生', title: '逆袭人生', author: '逆袭', description: '逆袭人生，从底层崛起', folder: '重生/逆袭人生' },
+  { category: '系统', title: '最强系统', author: '系统', description: '最强系统加持，成就无上霸主', folder: '系统/最强系统' },
+  { category: '系统', title: '万界抽奖系统', author: '抽奖', description: '万界抽奖，纵横诸天', folder: '系统/万界抽奖系统' },
+  { category: '科幻', title: '星际文明', author: '星际', description: '探索星际文明的奥秘', folder: '科幻/星际文明' },
+  { category: '科幻', title: '维度穿梭', author: '维度', description: '穿梭维度，寻找真理', folder: '科幻/维度穿梭' }
 ];
 
 // 获取下一个可用ID

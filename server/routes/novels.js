@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { getNovels, getNovelDetail, getChapters, getChapterContent, isFeishuConfigured } = require('../services/data');
 const { isSupabaseConfigured } = require('../services/supabase');
-const { validateQuery, validateParams, AppError } = require('../middleware');
+const { validateQuery, validateParams, AppError, asyncHandler } = require('../middleware');
 const { businessLogger } = require('../middleware/logger');
 
 // 调试端点 - 检查环境变量

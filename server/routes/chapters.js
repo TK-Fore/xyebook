@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { getChapterContent } = require('../services/feishu');
-const { validateParams } = require('../middleware');
+const { validateParams, asyncHandler } = require('../middleware');
 const { businessLogger } = require('../middleware/logger');
 
 // 获取章节内容

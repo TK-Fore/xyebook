@@ -1,5 +1,21 @@
 const supabase = require('./supabase');
 
+/**
+ * 本地小说数据（演示用）
+ * 生产环境应从数据库获取
+ * @typedef {Object} Novel
+ * @property {string} id - 小说ID
+ * @property {string} title - 小说标题
+ * @property {string} author - 作者
+ * @property {string} cover - 封面URL
+ * @property {string} description - 简介
+ * @property {string} category - 分类
+ * @property {string} status - 连载状态
+ * @property {number} word_count - 字数
+ * @property {string} rating - 评分
+ * @property {number} views - 阅读量
+ * @property {string} updateTime - 更新时间
+ */
 const localNovels = [
   { id: '1', title: '全职高手', author: '蝴蝶蓝', cover: 'https://via.placeholder.com/200x280/89CFF0/ffffff?text=全职高手', description: '游戏荣耀教材级作品', category: '游戏', status: '已完结', word_count: 5000000, rating: '9.2', views: 1500000, updateTime: '2024-01-15' },
   { id: '2', title: '诡异末世，我靠吹牛无敌了', author: '娱乐小组', cover: 'https://via.placeholder.com/200x280/FF6B6B/ffffff?text=诡异末世', description: '诡异末世降临，主角陈九意外觉醒"吹牛成真系统"，通过吹牛吓退诡异生物，走上逆袭之路。', category: '玄幻', status: '连载中', word_count: 50000, rating: '9.5', views: 10000, updateTime: '2024-03-10' },
@@ -11,6 +27,17 @@ const localNovels = [
   { id: '8', title: '我在都市当奶爸', author: '都市居士', cover: 'https://via.placeholder.com/200x280/FFA07A/ffffff?text=奶爸', description: '都市生活中的奶爸日常', category: '都市', status: '连载中', word_count: 200000, rating: '8.5', views: 50000, updateTime: '2024-03-14' }
 ];
 
+/**
+ * 获取小说列表
+ * @param {Object} params - 查询参数
+ * @param {string} [params.category] - 分类筛选
+ * @param {string} [params.keyword] - 关键词搜索
+ * @param {string} [params.searchType] - 搜索类型(title/author)
+ * @param {string} [params.status] - 连载状态(ongoing/completed)
+ * @param {string} [params.sortBy] - 排序字段
+ * @param {string} [params.sortOrder] - 排序方向(asc/desc)
+ * @returns {Promise<{novels: Array, source: string}>}
+ */
 async function getNovels(params = {}) {
   if (supabase.isSupabaseConfigured()) {
     try {
@@ -88,6 +115,11 @@ async function getNovels(params = {}) {
   return { novels, source: 'local' };
 }
 
+/**
+ * 获取小说详情
+ * @param {string} id - 小说ID
+ * @returns {Promise<{novel: Object|null, source: string}>}
+ */
 async function getNovelDetail(id) {
   if (supabase.isSupabaseConfigured()) {
     try {
@@ -99,6 +131,11 @@ async function getNovelDetail(id) {
   return { novel: novel || null, source: 'local' };
 }
 
+/**
+ * 获取小说的章节列表
+ * @param {string} novelId - 小说ID
+ * @returns {Promise<{chapters: Array, source: string}>}
+ */
 async function getChapters(novelId) {
   if (supabase.isSupabaseConfigured()) {
     try {
@@ -117,6 +154,11 @@ async function getChapters(novelId) {
   return { chapters: [], source: 'local' };
 }
 
+/**
+ * 获取章节内容
+ * @param {string} chapterId - 章节ID
+ * @returns {Promise<{chapter: Object|null, source: string}>}
+ */
 async function getChapterContent(chapterId) {
   if (supabase.isSupabaseConfigured()) {
     try {

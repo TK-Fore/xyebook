@@ -5,6 +5,36 @@ const { findUserByUsername, findUserById, createUser } = require('../services/us
 const { validate, loginRateLimiter, registerRateLimiter } = require('../middleware');
 const { businessLogger } = require('../middleware/logger');
 
+/**
+ * 生成用户Token
+ * @param {Object} user - 用户对象
+ * @returns {string} base64编码的Token
+ * @description 生产环境应使用 JWT 替代简单的 base64 编码
+ */
+function generateToken(user) {
+  return Buffer.from(JSON.stringify({ 
+    userId: user.id,
+    exp: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7天过期
+  })).toString('base64');
+}
+
+/**
+ * 验证Token
+ * @param {string} token - Token字符串
+ * @returns {Object|null} 解码后的用户信息或null
+ */
+function verifyToken(token) {
+  try {
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    if (decoded.exp && decoded.exp < Date.now()) {
+      return null; // Token已过期
+    }
+    return decoded;
+  } catch (e) {
+    return null;
+  }
+}
+
 // 注册 - 添加限流和验证
 router.post('/register', registerRateLimiter, validate('register'), (req, res, next) => {
   try {
@@ -21,7 +51,8 @@ router.post('/register', registerRateLimiter, validate('register'), (req, res, n
     
     const user = createUser({ username, email, password });
     
-    const token = Buffer.from(JSON.stringify({ userId: user.id })).toString('base64');
+    // 使用改进的Token生成函数
+    const token = generateToken(user);
     
     businessLogger.info('USER_REGISTERED', { userId: user.id, username: user.username });
     
@@ -54,7 +85,8 @@ router.post('/login', loginRateLimiter, validate('login'), (req, res, next) => {
     return next(error);
   }
   
-  const token = Buffer.from(JSON.stringify({ userId: user.id })).toString('base64');
+  // 使用改进的Token生成函数
+  const token = generateToken(user);
   
   businessLogger.info('USER_LOGIN', { userId: user.id, username: user.username });
   
