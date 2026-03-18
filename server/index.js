@@ -10,6 +10,8 @@ const commentRoutes = require('./routes/comments');
 const ratingRoutes = require('./routes/ratings');
 const shareRoutes = require('./routes/share');
 const weatherRoutes = require('./routes/weather');
+const hotsearchRoutes = require('./routes/hotsearch');
+const weiboRoutes = require('./routes/weibo');
 const { logger, errorHandler, rateLimiter } = require('./middleware');
 
 const app = express();
@@ -48,6 +50,8 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/share', shareRoutes);
 app.use('/api/weather', weatherRoutes);
+app.use('/api/hotsearch', hotsearchRoutes);
+app.use('/api/weibo', weiboRoutes);
 
 // 健康检查（必须在SPA fallback之前）
 app.get('/api/health', (req, res) => {

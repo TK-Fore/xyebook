@@ -1,6 +1,6 @@
 /**
  * 热搜服务
- * 支持: 知乎热榜、抖音热榜、百度热搜
+ * 支持: 知乎热榜、抖音热榜、百度热搜、谷歌趋势
  * 
  * 微博热搜: ❌ 无法接入
  * 原因: weibo.com/ajax/statuses/hot 和 weibo.com/ajax/side/hotSearch 均返回 302 重定向到登录页面
@@ -10,12 +10,17 @@
  * 1. 使用已登录的Cookie进行请求
  * 2. 或使用爬虫服务(如Puppeteer/Playwright)模拟浏览器访问
  * 3. 或购买第三方微博热搜API服务
+ * 
+ * 谷歌趋势: ⚠️ 需要代理或特殊处理
+ * 原因: Google Trends API 需要 Google 账户或使用第三方服务(如 SerpAPI)
+ *       国内直接访问可能受限，建议使用代理或等待后续优化
  */
 
 const API_BASE = {
   zhihu: 'https://api.zhihu.com/topstory/hot-lists',
   douyin: 'https://www.douyin.com',
   baidu: 'https://top.baidu.com',
+  google: 'https://trends.google.com/trends',
   // 微博无法接入
 };
 
@@ -126,13 +131,9 @@ function formatDouyinData(wordList) {
 
 /**
  * 获取百度热搜
- * 需要爬虫方式抓取页面
+ * 通过爬虫方式抓取页面，解析HTML中的JSON数据
  */
 async function getBaiduHot(tab = 'realtime') {
-  // 百度热搜页面结构复杂，需要爬虫
-  // 这里先检查是否有可用的API端点
-  
-  // 尝试百度指数API (需要Cookie)
   const url = `https://top.baidu.com/board?tab=${tab}`;
   
   const response = await fetch(url, {
@@ -148,33 +149,39 @@ async function getBaiduHot(tab = 'realtime') {
   
   const html = await response.text();
   
-  // 尝试从HTML中提取热搜数据
-  // 百度热搜数据通常嵌入在script标签中的JSON
-  const dataMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*({.*?});/);
+  // 从HTML中提取s-data中的JSON数据
+  const dataMatch = html.match(/<!--s-data:({.*?})-->/);
   
   if (dataMatch) {
     try {
       const jsonData = JSON.parse(dataMatch[1]);
-      // 提取热搜数据
-      const hotList = jsonData?.hotList || jsonData?.data?.hotList || [];
+      // 提取cards中的hotList
+      const cards = jsonData?.data?.cards || [];
       
-      if (hotList.length > 0) {
-        return hotList.map((item, index) => ({
-          rank: index + 1,
-          title: item.content || item.word || '',
-          url: item.url || `https://www.baidu.com/s?wd=${encodeURIComponent(item.content || item.word || '')}`,
-          hotValue: item.hotScore || item.hot || 0,
-          label: item.label || '',
-          type: item.type || 'topic'
-        }));
+      for (const card of cards) {
+        if (card.component === 'hotList') {
+          const hotList = card.content || [];
+          
+          if (hotList.length > 0) {
+            return hotList.map((item, index) => ({
+              rank: index + 1,
+              title: item.word || item.query || '',
+              url: item.url || item.rawUrl || `https://www.baidu.com/s?wd=${encodeURIComponent(item.word || '')}`,
+              hotValue: parseInt(item.hotScore) || 0,
+              label: item.hotTag || '',
+              desc: item.desc || '',
+              img: item.img || '',
+              type: item.type || 'topic'
+            }));
+          }
+        }
       }
     } catch (e) {
       console.error('解析百度热搜JSON失败:', e.message);
     }
   }
   
-  // 如果无法解析，返回错误提示需要爬虫
-  throw new Error('百度热搜需要使用爬虫方案抓取，页面数据加密无法直接解析');
+  throw new Error('百度热搜数据解析失败，请稍后重试');
 }
 
 /**
@@ -192,13 +199,66 @@ async function getWeiboHot() {
 }
 
 /**
+ * 获取谷歌趋势热搜
+ * ⚠️ 需要特殊处理
+ * 
+ * Google Trends 没有公开的免费 API，官方 API 需要 Google 账户
+ * 可选方案:
+ * 1. 使用第三方服务 (如 SerpAPI, ScrapingDog 等)
+ * 2. 使用 Playwright/Puppeteer 模拟浏览器
+ * 3. 使用代理访问官方页面
+ * 
+ * 当前状态: 页面可访问但返回数据需要 JavaScript 渲染
+ */
+async function getGoogleTrends(geo = 'US') {
+  // 尝试 Google Trends API (需要代理)
+  const url = `https://trends.google.com/trends/api/dailytrends?hl=zh-CN&tz=-480&geo=${geo}`;
+  
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const text = await response.text();
+    // Google API 返回格式: )]}' \n <JSON>
+    const jsonStr = text.replace(/^\)\]\}\'\s*/, '');
+    const data = JSON.parse(jsonStr);
+    
+    const trends = data.default?.trendingSearchesDays?.[0]?.trendingSearches || [];
+    
+    return trends.map((item, index) => ({
+      rank: index + 1,
+      title: item.title?.query || '',
+      url: `https://www.google.com/search?q=${encodeURIComponent(item.title?.query || '')}`,
+      hotValue: item.formattedTraffic || '0',
+      label: item.label?.text || '',
+      articles: item.articles?.slice(0, 3).map(art => ({
+        title: art.title || '',
+        url: art.url || ''
+      })) || []
+    }));
+  } catch (e) {
+    // 如果 API 失败，尝试返回友好的错误信息
+    throw new Error(`谷歌趋势暂不可用: ${e.message}。如需接入建议使用代理或第三方服务。`);
+  }
+}
+
+/**
  * 获取所有平台热搜
  */
 async function getAllHot() {
   const results = {
     zhihu: { success: false, data: [], error: null },
     douyin: { success: false, data: [], error: null },
-    baidu: { success: false, data: [], error: null }
+    baidu: { success: false, data: [], error: null },
+    google: { success: false, data: [], error: null }
   };
   
   // 知乎
@@ -225,6 +285,14 @@ async function getAllHot() {
     results.baidu.error = e.message;
   }
   
+  // 谷歌趋势
+  try {
+    results.google.data = await getGoogleTrends();
+    results.google.success = true;
+  } catch (e) {
+    results.google.error = e.message;
+  }
+  
   return results;
 }
 
@@ -233,5 +301,6 @@ module.exports = {
   getDouyinHot,
   getBaiduHot,
   getWeiboHot,
+  getGoogleTrends,
   getAllHot
 };
